@@ -1,0 +1,2078 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070d1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>IIP · Macro Intelligence</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#070d1a; --deep:#0b1425; --panel:rgba(19,32,56,.55); --panel-hi:rgba(28,45,76,.62);
+  --edge:rgba(120,160,220,.13); --edge-hi:rgba(180,215,255,.22);
+  --gold:#d4a949; --gold-hi:#f2cd72; --gold-dim:rgba(212,169,73,.13);
+  --teal:#3fd0c9; --teal-hi:#7ff0e9; --teal-dim:rgba(63,208,201,.12);
+  --ink:#e9f0fb; --ink-mid:#93a8c8; --ink-low:#5a6f92; --ink-faint:#38496a;
+  --pos:#46d495; --neg:#f2665c; --warn:#e8a63e;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --body:'DM Sans',system-ui,sans-serif;
+  --disp:'Playfair Display',Georgia,serif;
+  --r:14px; --r-sm:9px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;overflow-x:hidden}
+body{
+  background:var(--void); color:var(--ink); font-family:var(--body);
+  font-size:14px; line-height:1.5; min-height:100vh; overflow-x:hidden;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(900px 620px at 12% -8%, rgba(63,208,201,.11), transparent 62%),
+    radial-gradient(760px 560px at 92% 4%, rgba(212,169,73,.10), transparent 60%),
+    radial-gradient(1100px 800px at 50% 108%, rgba(40,80,150,.14), transparent 68%);
+}
+.wrap{position:relative;z-index:1;max-width:1340px;margin:0 auto;padding:0 20px 90px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* ── glass ── */
+.glass{
+  background:var(--panel); border:1px solid var(--edge); border-radius:var(--r);
+  backdrop-filter:blur(16px) saturate(1.3); -webkit-backdrop-filter:blur(16px) saturate(1.3);
+  box-shadow:0 8px 34px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.045);
+}
+
+/* ── masthead ── */
+header{padding:30px 0 20px;display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.brand{flex:1;min-width:250px}
+.eyebrow{
+  font-family:var(--mono);font-size:10px;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:7px;display:flex;align-items:center;gap:9px
+}
+.eyebrow::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--gold-dim),transparent);max-width:150px}
+h1{font-family:var(--disp);font-size:clamp(30px,5.2vw,46px);font-weight:900;letter-spacing:-.022em;line-height:1}
+h1 em{font-style:italic;font-weight:500;color:var(--teal)}
+.tagline{color:var(--ink-low);font-size:12.5px;margin-top:7px;max-width:52ch}
+.hdr-side{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.pill{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;padding:6px 12px;
+  border-radius:999px;border:1px solid var(--edge);color:var(--ink-mid);background:rgba(10,20,38,.5);
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap
+}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--ink-faint);flex:none}
+.dot.ok{background:var(--pos);box-shadow:0 0 9px rgba(70,212,149,.75)}
+.dot.warn{background:var(--warn);box-shadow:0 0 9px rgba(232,166,62,.65)}
+.dot.err{background:var(--neg);box-shadow:0 0 9px rgba(242,102,92,.65)}
+.dot.live{animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ── buttons ── */
+button{font-family:var(--body);cursor:pointer;border:0;background:none;color:inherit}
+.btn{
+  font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:500;
+  padding:10px 17px;border-radius:var(--r-sm);border:1px solid var(--edge-hi);
+  background:rgba(20,36,62,.7);color:var(--ink);transition:.16s;white-space:nowrap
+}
+.btn:hover{border-color:var(--teal);color:var(--teal-hi);background:rgba(30,58,88,.7)}
+.btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.btn.gold{border-color:rgba(212,169,73,.42);color:var(--gold-hi);background:var(--gold-dim)}
+.btn.gold:hover{border-color:var(--gold);background:rgba(212,169,73,.2)}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.sm{padding:6px 11px;font-size:10px}
+
+/* ── tabs ── */
+nav.tabs{display:flex;gap:3px;margin:6px 0 22px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab{
+  font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  padding:11px 16px;color:var(--ink-low);border-bottom:2px solid transparent;
+  transition:.16s;white-space:nowrap;position:relative
+}
+.tab:hover{color:var(--ink-mid)}
+.tab.on{color:var(--gold-hi);border-bottom-color:var(--gold)}
+.view{display:none;animation:fade .28s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+/* ── SIGNATURE: regime spine ── */
+.spine-stack{padding:22px 24px 18px}
+.spine-hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px;gap:14px;flex-wrap:wrap}
+.spine-hd h2{font-family:var(--disp);font-size:21px;font-weight:700;letter-spacing:-.01em}
+.spine-legend{font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;color:var(--ink-faint);text-transform:uppercase;display:flex;gap:15px;flex-wrap:wrap}
+.spine-legend i{font-style:normal;display:inline-flex;align-items:center;gap:5px}
+.sw{width:9px;height:9px;border-radius:2px;display:inline-block}
+.spine{display:grid;grid-template-columns:130px 1fr 96px;gap:14px;align-items:center;padding:11px 0;border-bottom:1px solid rgba(120,160,220,.07)}
+.spine:last-child{border-bottom:0}
+.spine-name{font-family:var(--disp);font-size:15px;font-weight:700;letter-spacing:-.005em}
+.spine-name small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-faint);text-transform:uppercase;font-weight:400;margin-top:2px}
+.track{
+  position:relative;height:26px;border-radius:5px;overflow:visible;
+  background:linear-gradient(90deg,rgba(242,102,92,.19) 0%,rgba(232,166,62,.13) 32%,rgba(90,111,146,.11) 50%,rgba(63,208,201,.13) 68%,rgba(70,212,149,.19) 100%);
+  border:1px solid var(--edge)
+}
+.track .decile{position:absolute;top:0;bottom:0;width:1px;background:rgba(120,160,220,.09)}
+.tick{position:absolute;top:-4px;bottom:-4px;width:3px;border-radius:2px;background:var(--gold);box-shadow:0 0 12px rgba(212,169,73,.85);transition:left .5s cubic-bezier(.4,0,.2,1);z-index:2}
+.tick.ghost{background:rgba(147,168,200,.42);box-shadow:none;width:2px;top:1px;bottom:1px;z-index:1}
+.tick-lbl{position:absolute;top:-19px;transform:translateX(-50%);font-family:var(--mono);font-size:9px;color:var(--gold-hi);white-space:nowrap;letter-spacing:.05em}
+.spine-val{text-align:right;font-family:var(--mono)}
+.spine-val b{display:block;font-size:17px;font-weight:700;letter-spacing:-.02em}
+.spine-val span{font-size:10px;color:var(--ink-low);letter-spacing:.04em}
+.up{color:var(--pos)} .down{color:var(--neg)} .flat{color:var(--ink-mid)}
+
+/* ── grids & cards ── */
+.grid{display:grid;gap:13px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(330px,100%),1fr))}
+.g3{grid-template-columns:repeat(auto-fill,minmax(min(252px,100%),1fr))}
+.g4{grid-template-columns:repeat(auto-fill,minmax(min(196px,100%),1fr))}
+.card{padding:16px 17px}
+.card-hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:13px}
+.card-hd h3{font-family:var(--disp);font-size:16px;font-weight:700}
+.card-hd .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint)}
+
+/* indicator tile */
+.tile{padding:13px 14px;position:relative;overflow:hidden}
+.tile::after{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--ink-faint);transition:.2s}
+.tile.hot::after{background:var(--pos)} .tile.cold::after{background:var(--neg)} .tile.mid::after{background:var(--warn)}
+.tile-nm{font-size:11.5px;color:var(--ink-mid);line-height:1.3;margin-bottom:9px;min-height:30px;font-weight:500}
+.tile-v{font-family:var(--mono);font-size:23px;font-weight:700;letter-spacing:-.028em;line-height:1}
+.tile-u{font-family:var(--mono);font-size:9.5px;color:var(--ink-faint);letter-spacing:.06em;margin-top:3px}
+.tile-row{display:flex;gap:11px;margin-top:11px;padding-top:9px;border-top:1px solid rgba(120,160,220,.08);font-family:var(--mono);font-size:10px}
+.tile-row div{flex:1}
+.tile-row i{font-style:normal;display:block;color:var(--ink-faint);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.asof{font-family:var(--mono);font-size:9px;color:var(--ink-faint);letter-spacing:.05em;margin-top:9px;display:flex;align-items:center;gap:5px}
+.asof.stale{color:var(--warn)}
+.spark{display:block;width:100%;height:30px;margin-top:9px;opacity:.85}
+
+/* ── table ── */
+table{width:100%;border-collapse:collapse}
+th{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-faint);font-weight:400;text-align:right;padding:0 9px 9px 0;border-bottom:1px solid var(--edge)
+}
+th:first-child{text-align:left}
+td{padding:9px 9px 9px 0;border-bottom:1px solid rgba(120,160,220,.06);text-align:right;font-family:var(--mono);font-size:12.5px}
+td:first-child{text-align:left;font-family:var(--body);font-weight:500}
+tbody tr:hover{background:rgba(63,208,201,.045)}
+.tk{font-family:var(--mono);font-weight:700;color:var(--gold-hi);font-size:12.5px}
+.bar{height:5px;border-radius:3px;background:rgba(120,160,220,.13);position:relative;overflow:hidden;min-width:50px}
+.bar i{position:absolute;top:0;bottom:0;left:50%;border-radius:3px;transition:.4s}
+
+/* ── forms ── */
+label.f{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-low);margin-bottom:6px}
+input[type=text],input[type=password],textarea,select{
+  width:100%;padding:10px 12px;font-family:var(--mono);font-size:12.5px;
+  background:rgba(6,13,26,.72);border:1px solid var(--edge);border-radius:var(--r-sm);color:var(--ink)
+}
+input:focus,textarea:focus,select:focus{outline:0;border-color:var(--teal);box-shadow:0 0 0 3px rgba(63,208,201,.13)}
+textarea{resize:vertical;min-height:100px;line-height:1.55}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;border-radius:3px;background:rgba(120,160,220,.2);outline:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);cursor:pointer;box-shadow:0 0 10px rgba(212,169,73,.6)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:var(--gold);cursor:pointer}
+.fld{margin-bottom:15px}
+.hint{font-size:11px;color:var(--ink-low);margin-top:6px;line-height:1.45}
+
+/* drop zone */
+.drop{border:1.5px dashed var(--edge-hi);border-radius:var(--r);padding:26px 20px;text-align:center;transition:.18s;cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--teal);background:var(--teal-dim)}
+.drop b{font-family:var(--disp);font-size:16px;display:block;margin-bottom:5px}
+.drop span{font-size:11.5px;color:var(--ink-low)}
+
+/* changes feed */
+.chg{display:flex;gap:13px;padding:11px 0;border-bottom:1px solid rgba(120,160,220,.07);align-items:flex-start}
+.chg:last-child{border-bottom:0}
+.chg-i{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex:none;font-family:var(--mono);font-size:12px;font-weight:700}
+.chg-b{flex:1;min-width:0}
+.chg-b b{font-size:12.5px;font-weight:500;display:block}
+.chg-b span{font-family:var(--mono);font-size:10.5px;color:var(--ink-low)}
+
+/* misc */
+.empty{padding:40px 22px;text-align:center;color:var(--ink-low)}
+.empty b{font-family:var(--disp);font-size:18px;color:var(--ink-mid);display:block;margin-bottom:7px}
+.empty p{font-size:12.5px;max-width:44ch;margin:0 auto;line-height:1.6}
+.note{padding:12px 14px;border-radius:var(--r-sm);font-size:11.5px;line-height:1.55;border-left:2px solid}
+.note.warn{background:rgba(232,166,62,.09);border-color:var(--warn);color:#f0d5a4}
+.note.info{background:var(--teal-dim);border-color:var(--teal);color:#b6f0ec}
+.sec-t{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);margin:26px 0 12px;display:flex;align-items:center;gap:11px}
+.sec-t::after{content:'';flex:1;height:1px;background:var(--edge)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(90px);z-index:200;padding:12px 20px;border-radius:999px;font-size:12.5px;transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;max-width:90vw}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.spin{width:15px;height:15px;border:2px solid rgba(120,160,220,.22);border-top-color:var(--teal);border-radius:50%;animation:sp .7s linear infinite;display:inline-block;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.brief{font-size:13.5px;line-height:1.72;color:#d3e0f2}
+.brief p{margin-bottom:11px}
+.brief strong{color:var(--gold-hi);font-weight:700}
+footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--edge);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;color:var(--ink-faint);text-transform:uppercase}
+@media(max-width:640px){
+  .wrap{padding:0 13px 80px}
+  .spine{grid-template-columns:1fr;gap:7px;padding:14px 0}
+  .spine-val{text-align:left;display:flex;gap:11px;align-items:baseline}
+  .spine-val b{display:inline}
+  .spine-stack{padding:17px 15px}
+  .card{padding:14px}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ── plan button & roadmap list ── */
+.plan-fab{
+  position:fixed;top:14px;right:14px;z-index:90;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  padding:8px 13px;border-radius:999px;border:1px solid var(--edge-hi);
+  background:rgba(10,20,38,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-mid);cursor:pointer;display:flex;align-items:center;gap:7px;transition:.16s;
+  box-shadow:0 6px 20px rgba(0,0,0,.3)
+}
+.plan-fab:hover{border-color:var(--gold);color:var(--gold-hi)}
+.plan-fab .dot{background:var(--gold)}
+@media(max-width:640px){.plan-fab{top:10px;right:10px;padding:7px 11px;font-size:9.5px}}
+.plan-item{padding:12px 0;border-bottom:1px solid rgba(120,160,220,.07)}
+.plan-item:last-child{border-bottom:0}
+.plan-item label{display:flex;gap:11px;align-items:flex-start;cursor:pointer}
+.plan-item input[type=checkbox]{margin-top:3px;accent-color:var(--gold);width:15px;height:15px;flex:none;cursor:pointer}
+.plan-item .pt{font-size:12.5px;font-weight:600;color:var(--ink)}
+.plan-item .pn{font-size:11.5px;color:var(--ink-low);line-height:1.55;margin-top:3px;display:block}
+
+/* ── tooltip: custom, not native title ── */
+[data-tip]{position:relative;cursor:help}
+[data-tip]::after{
+  content:attr(data-tip); position:absolute; left:50%; bottom:calc(100% + 9px); transform:translateX(-50%) translateY(4px);
+  width:max-content; max-width:236px; padding:9px 11px; border-radius:8px;
+  background:#0a1526; border:1px solid var(--edge-hi); color:var(--ink);
+  font-family:var(--body); font-size:11.5px; font-weight:400; line-height:1.5; letter-spacing:0; text-transform:none;
+  box-shadow:0 10px 28px rgba(0,0,0,.5); opacity:0; pointer-events:none; z-index:50;
+  transition:opacity .13s ease, transform .13s ease;
+}
+[data-tip]::before{
+  content:''; position:absolute; left:50%; bottom:calc(100% + 4px); transform:translateX(-50%);
+  border:5px solid transparent; border-top-color:var(--edge-hi); opacity:0; pointer-events:none;
+  transition:opacity .13s ease; z-index:50;
+}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;transform:translateX(-50%) translateY(0)}
+[data-tip]:hover::before,[data-tip]:focus-visible::before{opacity:1}
+[data-tip].tip-r::after{left:0;transform:translateX(0) translateY(4px)}
+[data-tip].tip-r:hover::after{transform:translateX(0) translateY(0)}
+[data-tip].tip-r::before{left:14px;transform:none}
+.tip-ic{
+  display:inline-grid;place-items:center;width:14px;height:14px;border-radius:50%;
+  border:1px solid var(--ink-faint);color:var(--ink-faint);font-family:var(--mono);font-size:9px;
+  font-style:normal;flex:none;transition:.15s
+}
+[data-tip]:hover .tip-ic{border-color:var(--teal);color:var(--teal-hi)}
+
+/* ── badges ── */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.09em;text-transform:uppercase;padding:4px 9px;border-radius:999px;
+  border:1px solid; white-space:nowrap
+}
+.badge.pos{color:var(--pos);border-color:rgba(70,212,149,.4);background:rgba(70,212,149,.1)}
+.badge.neg{color:var(--neg);border-color:rgba(242,102,92,.4);background:rgba(242,102,92,.1)}
+.badge.warn{color:var(--warn);border-color:rgba(232,166,62,.4);background:rgba(232,166,62,.1)}
+.badge.flat{color:var(--ink-low);border-color:var(--edge);background:rgba(120,160,220,.06)}
+.badge.gold{color:var(--gold-hi);border-color:rgba(212,169,73,.4);background:var(--gold-dim)}
+
+/* ── clickable rows/tiles ── */
+.clk{cursor:pointer;transition:.14s}
+.clk:hover{border-color:var(--teal);transform:translateY(-1px)}
+.clk:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+tr.clk:hover{background:rgba(63,208,201,.07)}
+tr.clk:hover td:first-child{color:var(--teal-hi)}
+.expand-ic{float:right;color:var(--ink-faint);font-size:11px;font-family:var(--mono)}
+
+/* ── detail modal ── */
+.modal-ov{
+  position:fixed;inset:0;z-index:110;background:rgba(4,9,18,.74);backdrop-filter:blur(4px);
+  display:none;align-items:flex-end;justify-content:center;-webkit-backdrop-filter:blur(4px)
+}
+.modal-ov.on{display:flex;animation:fadeIn .16s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{
+  width:100%;max-width:780px;max-height:90vh;overflow-y:auto;
+  border-radius:20px 20px 0 0;padding:24px 24px calc(24px + env(safe-area-inset-bottom));
+  animation:slideUp .22s cubic-bezier(.22,1,.36,1)
+}
+@keyframes slideUp{from{transform:translateY(28px);opacity:.4}to{transform:none;opacity:1}}
+@media(min-width:760px){
+  .modal-ov{align-items:center}
+  .modal-box{border-radius:20px;margin-bottom:5vh}
+}
+.modal-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:6px}
+.modal-hd h2{font-family:var(--disp);font-size:22px;font-weight:700;letter-spacing:-.015em}
+.modal-hd p{font-size:12.5px;color:var(--ink-low);margin-top:5px;max-width:52ch;line-height:1.5}
+.modal-x{
+  width:30px;height:30px;border-radius:9px;border:1px solid var(--edge-hi);display:grid;place-items:center;
+  flex:none;font-size:15px;color:var(--ink-mid);transition:.14s
+}
+.modal-x:hover{color:var(--neg);border-color:var(--neg)}
+.chart-wrap{margin:18px 0 6px;border-radius:var(--r-sm);background:rgba(6,13,26,.4);border:1px solid var(--edge);padding:10px 6px 4px}
+.chart-legend{display:flex;gap:14px;flex-wrap:wrap;padding:0 8px 6px;font-family:var(--mono);font-size:9.5px;color:var(--ink-low)}
+.chart-legend i{font-style:normal;display:inline-flex;align-items:center;gap:5px}
+.chart-legend em{font-style:normal;width:14px;height:2px;display:inline-block}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(88px,100%),1fr));gap:10px;margin-top:16px}
+.stat-cell{padding:10px 11px;border-radius:var(--r-sm);background:rgba(120,160,220,.05);border:1px solid var(--edge)}
+.stat-cell i{font-style:normal;display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px}
+.stat-cell b{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:-.02em}
+.range-btn.on{background:var(--gold-dim);border-color:var(--gold);color:var(--gold-hi)}
+
+/* ── cycle read ── */
+.cycle-card{padding:24px}
+.cycle-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.cycle-hd h2{font-family:var(--disp);font-size:20px;font-weight:700}
+.stage-badge{
+  font-family:var(--disp);font-size:24px;font-weight:900;letter-spacing:-.02em;
+  color:var(--gold-hi);display:flex;align-items:baseline;gap:10px;flex-wrap:wrap
+}
+.confmeter{height:5px;border-radius:3px;background:rgba(120,160,220,.15);overflow:hidden;width:120px}
+.confmeter i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--gold));border-radius:3px}
+.pillar-chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.pchip{
+  padding:8px 12px;border-radius:10px;border:1px solid;font-size:11.5px;display:flex;align-items:center;gap:7px;cursor:help
+}
+.pchip b{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.cycle-lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:16px}
+.cycle-lists h4{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px}
+.cycle-lists ul{list-style:none}
+.cycle-lists li{font-size:12.5px;padding:6px 0 6px 15px;position:relative;line-height:1.5;border-bottom:1px solid rgba(120,160,220,.06)}
+.cycle-lists li::before{content:'—';position:absolute;left:0;color:var(--ink-faint)}
+</style>
+</head>
+<body>
+<button class="plan-fab" onclick="openPlan()" data-tip="Full build plan — what's done, what's next. Status here is maintained in the file itself, not per-browser.">
+  <i class="dot"></i>PLAN
+</button>
+<div class="wrap">
+
+<header>
+  <div class="brand">
+    <div class="eyebrow">LAZLAB Creations · Platform 01</div>
+    <h1>Macro <em>Intelligence</em></h1>
+    <p class="tagline">Level, trend and acceleration across the pillars that set the regime. No composite score you didn't build yourself.</p>
+  </div>
+  <div class="hdr-side">
+    <span class="pill" data-tip="Green = key set and endpoints resolved. Amber = key saved, not yet probed. Red = probe failed. Get a free key at financialmodelingprep.com/register."><i class="dot" id="d-fmp"></i>FMP</span>
+    <span class="pill" data-tip="Green = key set and model list loaded. Amber = key saved, not yet verified. Get a free key at console.groq.com/keys."><i class="dot" id="d-ai"></i>GROQ</span>
+    <span class="pill" data-tip="Green = macro data synced within 24h. Amber = older than 24h, worth a refresh. Gray = never synced." id="pill-sync"><i class="dot" id="d-sync"></i><span id="sync-lbl">never synced</span></span>
+    <button class="btn gold" id="btn-refresh" onclick="refreshAll()" data-tip="Pulls every auto-sourced series, the treasury curve, VIX, and all 11 sector ETFs in one pass.">Refresh</button>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab on" data-v="dash" onclick="go('dash',this)" data-tip="Six-pillar overview, what changed since last session, and an AI briefing.">Regime</button>
+  <button class="tab" data-v="ind" onclick="go('ind',this)" data-tip="Every series in the catalog, with level, percentile, z-score and trend.">Indicators</button>
+  <button class="tab" data-v="sect" onclick="go('sect',this)" data-tip="The 11 SPDR sector ETFs ranked by momentum and relative strength vs SPY.">Sectors</button>
+  <button class="tab" data-v="val" onclick="go('val',this)" data-tip="Single-company intrinsic value range from DCF, Graham and historical multiples, plus a quality/certainty read.">Valuation</button>
+  <button class="tab" data-v="lab" onclick="go('lab',this)" data-tip="Build your own composite regime score by weighting the six pillars.">Weights Lab</button>
+  <button class="tab" data-v="imp" onclick="go('imp',this)" data-tip="Manually add series with no CORS-friendly API: margin debt, credit spreads, ISM.">Import</button>
+  <button class="tab" data-v="set" onclick="go('set',this)" data-tip="API keys, endpoint status, model selection, data export.">Settings</button>
+</nav>
+
+<!-- ══ REGIME ══ -->
+<section class="view on" id="v-dash">
+  <div class="glass cycle-card" style="margin-bottom:13px" id="cycle-card"></div>
+
+  <div class="glass spine-stack" style="margin-bottom:13px">
+    <div class="spine-hd">
+      <h2 data-tip="Each pillar is the average percentile of its member indicators against their own history — not a market-cap-weighted or officially defined index.">Regime Spine</h2>
+      <div class="spine-legend">
+        <i data-tip="Current pillar reading."><span class="sw" style="background:var(--gold)"></span>Now</i>
+        <i data-tip="Where this pillar stood three months ago — shows whether it's moving toward or away from the current reading."><span class="sw" style="background:rgba(147,168,200,.42)"></span>3M ago</i>
+        <i data-tip="Position on the 0–100 track is the percentile rank vs. this pillar's own full history, not an absolute good/bad scale."><span class="sw" style="background:linear-gradient(90deg,rgba(242,102,92,.5),rgba(70,212,149,.5))"></span>0–100th pctile</i>
+      </div>
+    </div>
+    <div id="spines"></div>
+  </div>
+
+  <div class="grid g2">
+    <div class="glass card">
+      <div class="card-hd"><h3 data-tip="A diff against your snapshot from the last time you hit Refresh — pillar shifts first, then individual series that moved meaningfully.">What Changed</h3><span class="k" id="chg-since">since last session</span></div>
+      <div id="changes"></div>
+    </div>
+    <div class="glass card">
+      <div class="card-hd"><h3 data-tip="Groq reads the current pillar and indicator data and writes a short plain-language note. It never sees anything you haven't already refreshed.">Briefing</h3><button class="btn sm" onclick="runBrief()" data-tip="Sends current pillar + indicator readings to Groq for a synthesis. Costs one API call.">Brief me</button></div>
+      <div id="brief" class="brief"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ INDICATORS ══ -->
+<section class="view" id="v-ind">
+  <div id="ind-body"></div>
+</section>
+
+<!-- ══ SECTORS ══ -->
+<section class="view" id="v-sect">
+  <div class="glass card" style="margin-bottom:13px" id="breadth-card"></div>
+  <div class="glass card">
+    <div class="card-hd"><h3 data-tip="Click any row for a price chart with 50 and 200-day moving averages.">Sector Rotation</h3>
+      <div style="display:flex;align-items:center;gap:9px">
+        <span class="k">momentum · relative strength · trend</span>
+        <span class="pill" data-tip="Green = sector prices synced within 24h. Amber = older, worth a refresh." id="pill-sect-sync"><i class="dot" id="d-sect-sync"></i><span id="sect-sync-lbl">never synced</span></span>
+        <button class="btn sm gold" id="btn-sect-refresh" onclick="refreshSectorsOnly()">Refresh sectors</button>
+      </div>
+    </div>
+    <div id="sect-body"></div>
+  </div>
+</section>
+
+<!-- ══ VALUATION ══ -->
+<section class="view" id="v-val">
+  <div class="glass card" style="margin-bottom:13px">
+    <div class="card-hd"><h3 data-tip="Pulls profile, 5yr annual income/balance/cash flow statements and ratios for one company. Falls back to the latest single year for any statement your FMP plan restricts to fewer years.">Company Lookup</h3><span class="k">FMP · annual, 5yr</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input type="text" id="val-ticker" placeholder="Ticker — e.g. AAPL" style="max-width:220px;text-transform:uppercase" maxlength="8" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')lookupCompany()">
+      <button class="btn gold" id="btn-val-go" onclick="lookupCompany()">Look up</button>
+    </div>
+  </div>
+  <div id="val-body">
+    <div class="empty">
+      <b>No company loaded</b>
+      <p>Look up a ticker to build an intrinsic value range from a two-stage DCF, the modified Graham formula, and historical P/E — alongside a quality and certainty read on the underlying business.</p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ WEIGHTS LAB ══ -->
+<section class="view" id="v-lab">
+  <div class="glass card" style="margin-bottom:13px">
+    <h3 style="font-family:var(--disp);font-size:18px;font-weight:700;margin-bottom:9px">What is this page?</h3>
+    <p style="font-size:13px;line-height:1.68;color:var(--ink-mid);max-width:64ch">Each pillar on the Regime tab already has a score, worked out purely from data — no opinions involved. This page lets <b style="color:var(--gold-hi)">you</b> decide how much each pillar should count when they're combined into one number. Push a slider up and that pillar counts for more; push it down and it counts for less. There's no correct setting — professional economists weight these differently too. Move a slider and watch the score change to see how much any one pillar is actually driving it.</p>
+  </div>
+  <div class="grid g2">
+    <div class="glass card">
+      <div class="card-hd">
+        <h3 data-tip="Higher = this pillar counts for more in the score on the right.">Pillar Weights</h3>
+        <div style="display:flex;gap:7px">
+          <button class="btn sm" onclick="setEqualWeights()" data-tip="Gives all six pillars an equal say — the neutral starting point if you don't have a view.">Equal weight</button>
+          <button class="btn sm" onclick="resetWeights()" data-tip="Back to the weights this app shipped with.">Reset</button>
+        </div>
+      </div>
+      <div id="sliders"></div>
+    </div>
+    <div class="glass card">
+      <div class="card-hd"><h3 data-tip="The six pillar scores, blended using your weights on the left.">Your Score</h3><span class="k" id="lab-tot"></span></div>
+      <div id="composite"></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ IMPORT ══ -->
+<section class="view" id="v-imp">
+  <div class="note warn" style="margin-bottom:14px">
+    <strong>Leverage &amp; credit have no CORS-friendly API.</strong> Margin debt is one number a month from FINRA; OAS spreads download from FRED as CSV in seconds. This is the pillar with the most edge in it, so it gets a first-class import path rather than being dropped.
+  </div>
+  <div class="grid g2">
+    <div class="glass card">
+      <div class="card-hd"><h3 data-tip="Any two-column CSV works: date first, value second, in either order per row. A header row is detected and skipped automatically.">Drop a CSV</h3><span class="k">date,value</span></div>
+      <div class="drop" id="drop" onclick="document.getElementById('file').click()" data-tip="Click to browse, or drag a .csv file directly onto this box.">
+        <b>Drop file or click</b>
+        <span>Two columns: date, value. Header row optional.</span>
+      </div>
+      <input type="file" id="file" accept=".csv,.txt" hidden>
+      <div class="fld" style="margin-top:14px">
+        <label class="f" data-tip="New rows merge with anything already stored for this series — matching dates are overwritten, nothing is duplicated.">Assign to series</label>
+        <select id="imp-series"></select>
+      </div>
+    </div>
+    <div class="glass card">
+      <div class="card-hd"><h3 data-tip="Faster than a file for a single new data point — paste straight from FRED, FINRA, or wherever the number came from.">Paste</h3><span class="k">one obs per line</span></div>
+      <div class="fld">
+        <textarea id="paste" placeholder="2026-06-01, 899231&#10;2026-05-01, 884502&#10;2026-04-01, 871330"></textarea>
+      </div>
+      <button class="btn gold" onclick="importPaste()">Import to selected series</button>
+      <p class="hint">Single value with no date stamps as today. Anything you import persists locally and carries its own as-of date.</p>
+    </div>
+  </div>
+  <div class="sec-t">Manual series status</div>
+  <div class="glass card"><div id="man-status"></div></div>
+</section>
+
+<!-- ══ SETTINGS ══ -->
+<section class="view" id="v-set">
+  <div class="grid g2">
+    <div class="glass card">
+      <div class="card-hd"><h3>Keys</h3><span class="k">localStorage only</span></div>
+      <div class="fld">
+        <label class="f" style="display:flex;justify-content:space-between;align-items:baseline">
+          <span data-tip="Powers every auto-sourced series: economics, treasury curve, VIX, and the 11 sector ETFs.">FMP API key</span>
+          <a href="https://site.financialmodelingprep.com/register" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:9.5px;color:var(--teal-hi);text-decoration:none;letter-spacing:.08em" data-tip="Opens FMP's signup page in a new tab. Free tier works for testing; the full indicator set needs Premium.">GET KEY →</a>
+        </label>
+        <input type="password" id="k-fmp" placeholder="required for auto data">
+      </div>
+      <div class="fld">
+        <label class="f" style="display:flex;justify-content:space-between;align-items:baseline">
+          <span data-tip="Powers the Brief Me button on the Regime tab. Everything else works without it.">Groq API key</span>
+          <a href="https://console.groq.com/keys" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:9.5px;color:var(--teal-hi);text-decoration:none;letter-spacing:.08em" data-tip="Opens Groq's console in a new tab. Sign in, then Create API Key — free tier, starts with gsk_.">GET KEY →</a>
+        </label>
+        <input type="password" id="k-ai" placeholder="gsk_… — optional, for briefings">
+      </div>
+      <button class="btn gold" onclick="saveKeys()" data-tip="Stores both keys in this browser's localStorage and immediately re-probes endpoints / reloads the model list.">Save keys</button>
+      <p class="hint">Keys never leave this browser and are never written to source. If you deploy to a public GitHub Pages repo, they still stay client-side — but never commit one, since git history keeps it after deletion.</p>
+    </div>
+    <div class="glass card">
+      <div class="card-hd"><h3 data-tip="FMP has renamed or gated some endpoints across plan tiers. The app tries the current path first, falls back to the legacy one, and remembers which answered — so this list reflects your actual key, not a guess.">Endpoint Resolution</h3><span class="k">runtime probe</span></div>
+      <div id="ep-status"></div>
+      <button class="btn sm" style="margin-top:12px" onclick="probeEndpoints()" data-tip="Re-runs the stable → legacy fallback check for every endpoint. Useful after upgrading your FMP plan.">Re-probe</button>
+      <p class="hint">The app tries <code>stable</code> then legacy <code>v3/v4</code> for each source and remembers which answered. Anything unresolved routes to manual import automatically.</p>
+    </div>
+  </div>
+  <div class="sec-t">Model</div>
+  <div class="glass card">
+    <div class="grid g2" style="align-items:start">
+      <div>
+        <div class="fld">
+          <label class="f" data-tip="Pulled live from GET /openai/v1/models on your key, not hardcoded — so this list reflects what's actually available today, not what was available when this app was built.">Groq model</label>
+          <select id="m-sel"></select>
+        </div>
+        <button class="btn sm" onclick="loadModels()" data-tip="Re-queries Groq for the current model list. Groq retires models roughly quarterly.">Refresh live model list</button>
+        <p class="hint">Queried from your key at startup rather than hardcoded. Groq retires models roughly quarterly — <code>llama-3.3-70b-versatile</code> shuts down August 2026.</p>
+      </div>
+      <div id="m-note"></div>
+    </div>
+  </div>
+  <div class="sec-t">About</div>
+  <div class="glass card" style="margin-bottom:14px">
+    <p class="hint" style="margin:0 0 10px">Full build plan, what's live vs. not started, and the open architecture decision — same content as the <b style="color:var(--gold-hi)">PLAN</b> button, top right of every tab.</p>
+    <button class="btn sm gold" onclick="openPlan()">View build plan</button>
+  </div>
+  <div class="sec-t">Data &amp; PWA</div>
+  <div class="glass card">
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn sm" onclick="exportAll()" data-tip="Downloads all series, weights and settings as JSON. API keys are deliberately excluded from the file.">Export snapshot</button>
+      <button class="btn sm" onclick="document.getElementById('imp-json').click()" data-tip="Restores series, weights and settings from a previously exported snapshot. Keys already saved in this browser are kept.">Import snapshot</button>
+      <button class="btn sm" onclick="downloadSW()" data-tip="Generates the service worker file. Browsers require this as a separate same-origin file — it can't be inlined into a single HTML page.">Download sw.js</button>
+      <button class="btn sm" onclick="wipe()" data-tip="Permanently clears everything stored in this browser: series, weights, keys. Cannot be undone \u2014 export first if unsure.">Reset all data</button>
+    </div>
+    <input type="file" id="imp-json" accept=".json" hidden>
+    <p class="hint" style="margin-top:12px">A service worker cannot be inlined into a single file — browsers require a same-origin script URL. <b>Download sw.js</b> generates one to drop beside this file in the repo. It caches the app shell only and never touches API responses, so a cached page can't show you stale macro data dressed as live.</p>
+    <div id="store-note" style="margin-top:12px"></div>
+  </div>
+</section>
+
+<footer>
+  <span>IIP Macro · v<span id="ver"></span> · schema <span id="schema"></span></span>
+  <span id="foot-r"></span>
+</footer>
+</div>
+<div class="toast glass" id="toast"></div>
+<div class="modal-ov" id="modal-ov" onclick="if(event.target===this)closeDetail()">
+  <div class="modal-box glass" id="modal-box" role="dialog" aria-modal="true"></div>
+</div>
+<script>
+"use strict";
+const APP_VERSION='1.3.0', SCHEMA='iip_v1';
+
+/* ══════════ CATALOG ══════════
+   invert:true  → a high reading is a negative for the regime
+   src: econ (FMP economics) | curve (derived from treasury) | manual (CSV/paste) */
+const PILLARS=[
+  {id:'growth',    name:'Growth',    sub:'output & demand',   tip:'Is the economy producing and spending more or less than before. Rising = expansion, falling = contraction risk.'},
+  {id:'labor',     name:'Labor',     sub:'employment slack',  tip:'Tightness of the job market. Low unemployment and low claims mean little slack — often a late-cycle signal, not always a risk-on one.'},
+  {id:'inflation', name:'Inflation', sub:'price pressure',    tip:'Rate of price increases. Scored inverted here — cooling inflation reads as supportive, accelerating inflation reads as a headwind.', invert:true},
+  {id:'rates',     name:'Rates',     sub:'curve & policy',    tip:'Policy rate and the shape of the Treasury curve. An inverted curve (10s2s or 10s3m below zero) has preceded most postwar recessions.'},
+  {id:'credit',    name:'Credit',    sub:'leverage & stress', tip:'Cost and availability of credit. Widening spreads and tightening lending standards are stress signals — scored inverted.', invert:true},
+  {id:'sentiment', name:'Sentiment', sub:'confidence & risk', tip:'Consumer and market mood. VIX is scored inverted — a fear spike is a headwind, not a tailwind.'}
+];
+
+const CATALOG=[
+  {id:'realGDP',        p:'growth',    src:'econ',   nm:'Real GDP',                cand:['realGDP','GDP'],                                  u:'$B',  freq:'Q', tip:'Total inflation-adjusted output of the economy. The broadest single growth measure, but only prints quarterly.'},
+  {id:'retailSales',    p:'growth',    src:'econ',   nm:'Retail Sales',            cand:['retailSales'],                                    u:'$M',  freq:'M', tip:'Monthly consumer spending at retailers. Consumption is roughly 2/3 of GDP, so this is a fast read on the biggest growth component.'},
+  {id:'industrialProd', p:'growth',    src:'econ',   nm:'Industrial Production',   cand:['industrialProductionTotalIndex'],                 u:'idx', freq:'M', tip:'Output of factories, mines and utilities. The manufacturing-side counterpart to consumer spending.'},
+  {id:'durableGoods',   p:'growth',    src:'econ',   nm:'Durable Goods Orders',    cand:['durableGoods'],                                   u:'$M',  freq:'M', tip:'New orders for goods meant to last 3+ years (equipment, vehicles, appliances). A forward-looking read — orders lead production.'},
+  {id:'housingStarts',  p:'growth',    src:'econ',   nm:'Housing Starts',          cand:['newPrivatelyOwnedHousingUnitsStartedTotalUnits'], u:'K',   freq:'M', tip:'New residential construction begun. Highly rate-sensitive, and a classic early-cycle leading indicator.'},
+
+  {id:'unemployment',   p:'labor',     src:'econ',   nm:'Unemployment Rate',       cand:['unemploymentRate'],                               u:'%',   freq:'M', invert:true, tip:'Share of the labor force out of work and looking. Sharp increases (the Sahm Rule) have reliably flagged recessions in progress.'},
+  {id:'payrolls',       p:'labor',     src:'econ',   nm:'Nonfarm Payrolls',        cand:['totalNonfarmPayroll'],                            u:'K',   freq:'M', tip:'Net jobs added or lost economy-wide, ex-farm work. The market\u2019s most-watched single monthly release.'},
+  {id:'claims',         p:'labor',     src:'econ',   nm:'Initial Claims',          cand:['initialClaims'],                                  u:'K',   freq:'W', invert:true, tip:'New unemployment filings. Weekly and timely — often the first labor crack to show, well before the monthly unemployment rate moves.'},
+
+  {id:'cpi',            p:'inflation', src:'econ',   nm:'CPI',                     cand:['CPI','consumerPriceIndex'],                       u:'idx', freq:'M', invert:true, tip:'Consumer Price Index — the headline cost-of-living gauge and the inflation number markets react to most.'},
+  {id:'inflationRate',  p:'inflation', src:'econ',   nm:'Inflation Rate',          cand:['inflationRate'],                                  u:'%',   freq:'M', invert:true, tip:'Year-over-year CPI change, expressed as a rate rather than an index level — easier to read trend and acceleration directly.'},
+
+  {id:'fedFunds',       p:'rates',     src:'econ',   nm:'Fed Funds Rate',          cand:['federalFunds'],                                   u:'%',   freq:'M', invert:true, tip:'The Fed\u2019s overnight policy rate. Sets the floor for every other rate in the economy.'},
+  {id:'ust10',          p:'rates',     src:'curve',  nm:'10-Year Treasury',        f:r=>pick(r,['year10','10Y']),                           u:'%',   freq:'D', tip:'Benchmark long-term government yield. The reference rate for mortgages and corporate borrowing costs.'},
+  {id:'ust2',           p:'rates',     src:'curve',  nm:'2-Year Treasury',         f:r=>pick(r,['year2','2Y']),                             u:'%',   freq:'D', tip:'Short-term yield that tracks near-term Fed policy expectations closely.'},
+  {id:'c10s2s',         p:'rates',     src:'curve',  nm:'10s2s Spread',            f:r=>sub(pick(r,['year10','10Y']),pick(r,['year2','2Y'])),  u:'bp', freq:'D', scale:100, tip:'10-year yield minus 2-year yield. Negative (inverted) has preceded most postwar U.S. recessions, typically by 12\u201324 months.'},
+  {id:'c10s3m',         p:'rates',     src:'curve',  nm:'10s3m Spread',            f:r=>sub(pick(r,['year10','10Y']),pick(r,['month3','3M'])), u:'bp', freq:'D', scale:100, tip:'10-year yield minus 3-month yield. The Fed\u2019s own preferred recession-signal spread, historically a cleaner lead than 10s2s.'},
+
+  {id:'marginDebt',     p:'credit',    src:'manual', nm:'FINRA Margin Debt',       u:'$M', freq:'M', invert:true, tip:'Total borrowed against brokerage accounts. Its rate of change and acceleration matter more than the level \u2014 rapid growth signals leverage building in the system.', help:'finra.org — Margin Statistics, monthly'},
+  {id:'hyOAS',          p:'credit',    src:'manual', nm:'High-Yield OAS',          u:'%',  freq:'D', invert:true, tip:'Extra yield investors demand to hold junk bonds over Treasuries. Widens sharply when credit markets sense stress \u2014 often before equities react.', help:'FRED series BAMLH0A0HYM2 — download CSV'},
+  {id:'igOAS',          p:'credit',    src:'manual', nm:'Inv-Grade OAS',           u:'%',  freq:'D', invert:true, tip:'Same idea as high-yield spreads but for investment-grade debt \u2014 a cleaner, lower-noise read on broad credit conditions.', help:'FRED series BAMLC0A0CM — download CSV'},
+  {id:'m2',             p:'credit',    src:'manual', nm:'M2 Money Supply',         u:'$B', freq:'M', tip:'Broad money supply \u2014 cash, checking, savings, and near-cash. Its growth rate is a liquidity gauge for the whole financial system.', help:'FRED series M2SL'},
+  {id:'sloos',          p:'credit',    src:'manual', nm:'SLOOS Net Tightening',    u:'%',  freq:'Q', invert:true, tip:'Fed survey of banks on lending standards. Net tightening means banks are pulling back credit \u2014 a leading indicator for both growth and credit stress.', help:'Fed Senior Loan Officer Survey, quarterly'},
+
+  {id:'sentimentIdx',   p:'sentiment', src:'econ',   nm:'Consumer Sentiment',      cand:['consumerSentiment'],                              u:'idx', freq:'M', tip:'Survey-based read on household confidence. Correlates with future spending intentions more than current activity.'},
+  {id:'vix',            p:'sentiment', src:'quote',  nm:'VIX',                     sym:'^VIX',                                              u:'',    freq:'D', invert:true, tip:'Options-implied 30-day S&P volatility \u2014 the market\u2019s \u201cfear gauge.\u201d Spikes fast on stress, decays slowly after.'},
+  {id:'ismMfg',         p:'sentiment', src:'manual', nm:'ISM Manufacturing',       u:'idx', freq:'M', tip:'Purchasing managers\u2019 survey. Above 50 = expansion, below 50 = contraction \u2014 one of the cleanest single-number cycle reads available.', help:'ismworld.org — PMI headline'}
+];
+
+const STAT_TIP={
+  pct:'Percentile rank of the current reading against its own full history. 50 = median; 90 = near the top of its historical range.',
+  z:'Z-score \u2014 standard deviations from the historical mean. Beyond \u00b12 is a genuinely unusual reading for this series.',
+  c1:'Change over the most recent period vs. one period prior, in the series\u2019 own units.',
+  c3:'Change over three periods \u2014 the primary trend window used across this dashboard.',
+  c12:'Change over twelve periods \u2014 a longer look-back to separate a real trend from short-term noise.',
+  accel:'Acceleration: is the 3-period trend itself speeding up or slowing down. Positive means the move is gathering pace, not just continuing.'
+};
+
+const SECTORS=[
+  {t:'XLK',n:'Technology'},{t:'XLF',n:'Financials'},{t:'XLY',n:'Cons. Discretionary'},
+  {t:'XLC',n:'Communication'},{t:'XLI',n:'Industrials'},{t:'XLV',n:'Health Care'},
+  {t:'XLP',n:'Cons. Staples'},{t:'XLE',n:'Energy'},{t:'XLU',n:'Utilities'},
+  {t:'XLB',n:'Materials'},{t:'XLRE',n:'Real Estate'}
+];
+const BENCH='SPY';
+
+/* ══════════ ROADMAP ══════════
+   Maintained directly in this file each session — this is the single
+   source of truth for what's built, so it travels intact whenever this
+   file is shared between collaborators. Update `status` here as phases
+   land rather than relying on any per-browser state. */
+const ROADMAP=[
+  {id:'foundation', phase:'0', title:'Foundation — data pipe, architecture', status:'done',
+    note:'Pivoted from the original Python-backend plan to pure client-side, with manual CSV/paste import as the fallback for sources with no CORS-friendly API.'},
+  {id:'macro', phase:'4', title:'Macro / Regime engine', status:'done',
+    note:'6 pillars, indicator catalog, endpoint auto-probing (stable\u2192legacy fallback), Cycle Read, Groq briefing.'},
+  {id:'valuation', phase:'2', title:'Valuation MVP', status:'partial',
+    note:'DCF + modified Graham + historical multiples + quality/certainty scoring, live-adjustable assumptions. Still needs real-world testing across 10\u201320 diverse companies per the original plan\u2014don\u2019t fully trust the numbers until that\u2019s done.'},
+  {id:'sectors', phase:'5', title:'Sector Rotation', status:'partial',
+    note:'Momentum, relative strength vs SPY, 50/200D trend, and breadth are live. Missing: the actual Overweight/Neutral/Underweight call, and folding in fundamentals/earnings revisions like the original plan specified.'},
+  {id:'screener', phase:'3', title:'S&P 500 Screener', status:'todo',
+    note:'Batch-run the valuation engine across the index and rank by composite score. Not started.'},
+  {id:'portfolio', phase:'6', title:'Portfolio & Rebalancing', status:'todo',
+    note:'Import holdings/targets, exposure, drift, rebalance flags, deployment-of-new-capital logic. Not started.'},
+  {id:'backtest', phase:'7', title:'Backtesting', status:'todo',
+    note:'Historical validation of the regime, sector, and valuation signals across multiple cycles. Not started.'},
+  {id:'monitoring', phase:'8', title:'Monitoring & Alerts', status:'todo',
+    note:'Earnings/dividend calendar, watchlists, material-change alerts. Not started.'},
+  {id:'ai-analyst', phase:'9', title:'AI Analyst \u2014 company level', status:'todo',
+    note:'Macro-level AI (Brief, Cycle Read) is done. Earnings transcript/release analysis and thesis-change tracking at the company level is not.'},
+  {id:'journal', phase:'extra', title:'Investment Journal', status:'todo',
+    note:'Thesis + rationale logging. Flagged early as worth pulling into the MVP rather than waiting for the end state \u2014 still not built.'},
+  {id:'marketval', phase:'extra', title:'Market Valuation Layer', status:'todo',
+    note:'Dedicated dashboard for CAPE, forward P/E, equity risk premium, market cap/GDP. The pieces exist scattered across Indicators today, not tied together.'}
+];
+const ARCH_DECISION='Open decision, not yet made: split into linked single-file apps (Macro / Research / Portfolio, sharing one localStorage schema) once Screener + Portfolio start, or keep growing this one file.';
+
+/* staleness tolerance in days, by frequency */
+const TOL={D:4,W:10,M:45,Q:120};
+/* Freshness guard for the three refresh entry points below — reopening the
+   app or tapping Refresh again a couple minutes later shouldn't re-spend
+   API calls on data that hasn't had time to change. */
+/* Freshness is informational only below — the refresh buttons always do a
+   real fetch when clicked. This just answers "do I need to?" via a light
+   and a plain-language timestamp, at a 24h threshold. */
+const FRESH_MS=24*60*60*1000;
+function freshEnough(iso){ return iso && (Date.now()-Date.parse(iso))<FRESH_MS; }
+function agoStr(iso){
+  if(!iso) return 'never';
+  const s=Math.round((Date.now()-Date.parse(iso))/1000);
+  if(s<60) return s+'s ago';
+  if(s<3600) return Math.round(s/60)+'m ago';
+  if(s<86400) return Math.round(s/3600)+'h ago';
+  return Math.round(s/86400)+'d ago';
+}
+
+/* ══════════ STATE ══════════ */
+const DEFAULT={
+  keys:{fmp:'',ai:''},
+  model:'openai/gpt-oss-120b',
+  models:[],
+  series:{},              // id -> [{d:'YYYY-MM-DD', v:number}, …] newest first
+  meta:{},                // id -> {asof, src, resolved}
+  sectors:{},
+  companies:{},           // ticker -> {profile, income[], balance[], cashflow[], ratios[], keymetrics[], fetchedAt, assumptions:{growth,discount,termGrowth,aaaYield}}
+  lastValTicker:null,
+  planChecks:{},          // roadmap item id -> bool. Local to this browser only, not shared.
+  weights:{growth:20,labor:15,inflation:20,rates:15,credit:20,sentiment:10},
+  endpoints:{},
+  lastSeen:null,
+  sectorsFetchedAt:null,
+  lastSnapshot:{},
+  brief:'',
+  cycle:null              // {stage,confidence,pillars:[{id,read,why}],drivers,watch,summary,asof,model,builtFrom}
+};
+/* moving-average windows by native frequency — "if applicable" means: skip when
+   the series is too short to support the longer window */
+const MA_BY_FREQ={D:[50,200],W:[13,52],M:[3,12],Q:[4,8]};
+let ST=structuredClone(DEFAULT);
+
+function load(){
+  try{
+    const raw=localStorage.getItem(SCHEMA);
+    if(raw) ST=Object.assign(structuredClone(DEFAULT),JSON.parse(raw));
+    else{ // migrate from any earlier schema
+      for(const old of ['iip_v0']){
+        const o=localStorage.getItem(old);
+        if(o){ ST=Object.assign(structuredClone(DEFAULT),JSON.parse(o)); save(); break; }
+      }
+    }
+  }catch(e){ console.warn('load failed',e); }
+}
+function save(){
+  try{ localStorage.setItem(SCHEMA,JSON.stringify(ST)); }
+  catch(e){
+    if(String(e).match(/quota|exceed/i)) toast('Storage full — export a snapshot and reset. Time to move to Dexie.');
+  }
+}
+function bytes(){ try{ return new Blob([localStorage.getItem(SCHEMA)||'']).size; }catch(e){ return 0; } }
+
+/* ══════════ STATS ENGINE ══════════
+   One function applied uniformly to every series. */
+function stats(rows,cfg){
+  if(!rows||rows.length<2) return null;
+  const v=rows.map(r=>r.v).filter(Number.isFinite);
+  if(v.length<2) return null;
+  const cur=v[0];
+  const sorted=[...v].sort((a,b)=>a-b);
+  const below=sorted.filter(x=>x<cur).length;
+  const pct=(below/(sorted.length-1))*100;
+  const mean=v.reduce((a,b)=>a+b,0)/v.length;
+  const sd=Math.sqrt(v.reduce((a,b)=>a+(b-mean)**2,0)/v.length);
+  const at=n=>v.length>n?v[n]:null;
+  const per=cfg.freq==='D'?21:cfg.freq==='W'?4:cfg.freq==='Q'?1:1;
+  const d=(then)=>then==null?null:(cur-then);
+  const c1=d(at(per)), c3=d(at(per*3)), c12=d(at(per*12));
+  const prior3=at(per*3)!=null&&at(per*6)!=null?at(per*3)-at(per*6):null;
+  const accel=(c3!=null&&prior3!=null)?c3-prior3:null;
+  const pct3=(()=>{ const t=at(per*3); if(t==null)return null;
+    const b=sorted.filter(x=>x<t).length; return (b/(sorted.length-1))*100; })();
+  return {cur,pct,pct3,z:sd?(cur-mean)/sd:0,c1,c3,c12,accel,n:v.length,
+          dir:c3==null?0:c3>0?1:c3<0?-1:0, series:v};
+}
+/* pillar score: mean of member percentiles, inverted where a high reading is bad */
+function pillarScore(pid){
+  const mem=CATALOG.filter(c=>c.p===pid);
+  const vals=[];
+  for(const c of mem){
+    const s=stats(ST.series[c.id],c);
+    if(!s) continue;
+    vals.push(c.invert?100-s.pct:s.pct);
+  }
+  if(!vals.length) return null;
+  const now=vals.reduce((a,b)=>a+b,0)/vals.length;
+  const prior=[];
+  for(const c of mem){
+    const s=stats(ST.series[c.id],c);
+    if(!s||s.pct3==null) continue;
+    prior.push(c.invert?100-s.pct3:s.pct3);
+  }
+  return {now, prior:prior.length?prior.reduce((a,b)=>a+b,0)/prior.length:null,
+          n:vals.length, of:mem.length};
+}
+function composite(w){
+  let num=0,den=0;
+  for(const p of PILLARS){
+    const s=pillarScore(p.id); if(!s) continue;
+    const wt=(w||ST.weights)[p.id]||0;
+    num+=s.now*wt; den+=wt;
+  }
+  return den?num/den:null;
+}
+
+/* Instant, rule-based read — no API call, no waiting. The AI Cycle Read below
+   is a separate, explicitly-labeled overlay; this heuristic never feeds it
+   silently and never overwrites the raw percentile. */
+function heuristic(score){
+  if(score==null) return {lbl:'No data',cls:'flat'};
+  if(score>=66) return {lbl:'Supportive',cls:'pos'};
+  if(score<=33) return {lbl:'Headwind',cls:'neg'};
+  return {lbl:'Neutral',cls:'warn'};
+}
+function sectorBreadth(){
+  const ks=Object.keys(ST.sectors||{});
+  if(!ks.length) return null;
+  const rows=ks.map(k=>ST.sectors[k]);
+  const rsPos=rows.filter(r=>(r.rs??0)>0).length;
+  const above200=rows.filter(r=>(r.m200??-1)>0).length;
+  const above50=rows.filter(r=>(r.m50??-1)>0).length;
+  return {total:ks.length,rsPos,above200,above50,asof:rows[0]?.asof};
+}
+
+/* ══════════ CHART ENGINE ══════════
+   Hand-rolled SVG, no chart library — keeps the file self-contained.
+   rows: newest-first, same shape as every other series in this app. */
+function rollingAvg(ascVals,n){
+  const out=[];
+  for(let i=0;i<ascVals.length;i++){
+    if(i<n-1){ out.push(NaN); continue; }
+    let s=0; for(let k=i-n+1;k<=i;k++) s+=ascVals[k];
+    out.push(s/n);
+  }
+  return out;
+}
+const MA_COLORS=['var(--gold)','var(--teal)'];
+/* chart period selector — options depend on native frequency, since "3mo" on a
+   quarterly series is one data point and not a useful button to offer */
+const RANGE_OPTS={
+  D:[['3M',90],['6M',182],['1Y',365],['3Y',1095],['5Y',1825],['ALL',null]],
+  W:[['6M',182],['1Y',365],['3Y',1095],['5Y',1825],['ALL',null]],
+  M:[['1Y',365],['3Y',1095],['5Y',1825],['10Y',3650],['ALL',null]],
+  Q:[['3Y',1095],['5Y',1825],['10Y',3650],['ALL',null]]
+};
+function defaultRangeDays(freq){ return freq==='D'||freq==='W'?365:freq==='M'?1825:null; }
+function lineChart(rows,opts){
+  opts=opts||{};
+  const w=opts.w||680, h=opts.h||210, pad={l:4,r:4,t:10,b:22};
+  if(!rows||rows.length<3) return {svg:'<div class="empty" style="padding:24px"><p>Not enough history to chart yet.</p></div>',legend:''};
+  const ascFull=[...rows].reverse();
+  const valsFull=ascFull.map(r=>r.v);
+  const freq=opts.freq||'M';
+  const maWins=(opts.maApplicable===false)?[]:(MA_BY_FREQ[freq]||[]).filter(n=>valsFull.length>=n*1.3);
+  const masFull=maWins.map((n,i)=>({n,color:MA_COLORS[i%2],vals:rollingAvg(valsFull,n)}));
+
+  // Compute MAs on the full series first, THEN slice to the visible window —
+  // otherwise a moving average near the left edge of a zoomed-in chart would
+  // be missing the lookback data it needs and render as a broken line.
+  let start=0;
+  if(opts.rangeDays){
+    const cutoff=Date.now()-opts.rangeDays*864e5;
+    const idx=ascFull.findIndex(r=>Date.parse(r.d)>=cutoff);
+    start=idx>=0?idx:0;
+  }
+  const asc=ascFull.slice(start);
+  const vals=valsFull.slice(start);
+  const mas=masFull.map(m=>({n:m.n,color:m.color,vals:m.vals.slice(start)}));
+  if(asc.length<2) return {svg:'<div class="empty" style="padding:24px"><p>Not enough history in this range — try a wider one.</p></div>',legend:''};
+
+  const all=vals.concat(...mas.map(m=>m.vals.filter(Number.isFinite)));
+  const mn=Math.min(...all), mx=Math.max(...all), rg=(mx-mn)||1;
+  const x=i=>pad.l+(i/(vals.length-1))*(w-pad.l-pad.r);
+  const y=v=>pad.t+(1-(v-mn)/rg)*(h-pad.t-pad.b);
+  const pts=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const areaId='ag'+Math.random().toString(36).slice(2,8);
+  const maPolys=mas.map(m=>{
+    const p=m.vals.map((v,i)=>Number.isFinite(v)?`${x(i).toFixed(1)},${y(v).toFixed(1)}`:null).filter(Boolean).join(' ');
+    return `<polyline points="${p}" fill="none" stroke="${m.color}" stroke-width="1.3" stroke-dasharray="4 3" opacity=".9" vector-effect="non-scaling-stroke"/>`;
+  }).join('');
+  const rising=vals[vals.length-1]>=vals[0];
+  const good=opts.invert?!rising:rising;
+  const lineCol=good?'var(--pos)':'var(--neg)';
+  const gridY=[0,.25,.5,.75,1].map(f=>`<line x1="${pad.l}" x2="${w-pad.r}" y1="${(pad.t+f*(h-pad.t-pad.b)).toFixed(1)}" y2="${(pad.t+f*(h-pad.t-pad.b)).toFixed(1)}" stroke="rgba(120,160,220,.08)" stroke-width="1"/>`).join('');
+  const svg=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" role="img" aria-label="Historical chart">
+    <defs><linearGradient id="${areaId}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${lineCol}" stop-opacity=".22"/><stop offset="100%" stop-color="${lineCol}" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${gridY}
+    <polygon points="${pts} ${x(vals.length-1).toFixed(1)},${(h-pad.b).toFixed(1)} ${x(0).toFixed(1)},${(h-pad.b).toFixed(1)}" fill="url(#${areaId})"/>
+    <polyline points="${pts}" fill="none" stroke="${lineCol}" stroke-width="1.7" vector-effect="non-scaling-stroke"/>
+    ${maPolys}
+    <text x="${pad.l}" y="${h-6}" font-family="JetBrains Mono" font-size="9" fill="var(--ink-faint)">${esc(asc[0].d)}</text>
+    <text x="${w-pad.r}" y="${h-6}" font-family="JetBrains Mono" font-size="9" fill="var(--ink-faint)" text-anchor="end">${esc(asc[asc.length-1].d)}</text>
+  </svg>`;
+  const legend=`<i><em style="background:${lineCol}"></em>value</i>`+mas.map(m=>`<i><em style="background:${m.color};height:0;border-top:2px dashed ${m.color}"></em>${m.n}-period MA</i>`).join('')
+    +`<i style="margin-left:auto">range ${fmtN(mn)}–${fmtN(mx)} · ${asc.length} pts shown</i>`;
+  return {svg,legend};
+}
+
+/* ══════════ HELPERS ══════════ */
+const pick=(o,ks)=>{ for(const k of ks){ if(o&&o[k]!=null) return +o[k]; } return null; };
+const sub=(a,b)=>(a==null||b==null)?null:a-b;
+const fmtN=(n,d)=>n==null||!Number.isFinite(n)?'—':n.toLocaleString('en-US',{minimumFractionDigits:d??(Math.abs(n)<10?2:Math.abs(n)<1000?1:0),maximumFractionDigits:d??(Math.abs(n)<10?2:Math.abs(n)<1000?1:0)});
+const sign=n=>n==null?'':n>0?'+':'';
+const cls=n=>n==null?'flat':n>0?'up':n<0?'down':'flat';
+const daysAgo=d=>{ const t=Date.parse(d); return Number.isFinite(t)?Math.floor((Date.now()-t)/864e5):null; };
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* Every chart/stats/valuation calc assumes rows[0] is the newest observation.
+   The manual-import path already enforces this; FMP's own ordering isn't
+   guaranteed the same way across every endpoint, so sort explicitly at
+   every ingestion point rather than trusting raw API order. */
+const sortNewestFirst=rows=>[...rows].sort((a,b)=>String(b.d).localeCompare(String(a.d)));
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove('on'),3400); }
+function dot(id,s){ const e=document.getElementById(id); if(e) e.className='dot'+(s?' '+s:''); }
+function timeout(p,ms,lbl){ return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error((lbl||'request')+' timed out')),ms))]); }
+
+/* bounded concurrency — keeps the FMP call budget sane */
+async function pool(items,fn,size=4,onEach){
+  const out=[]; let i=0;
+  await Promise.all(Array.from({length:Math.min(size,items.length)},async()=>{
+    while(i<items.length){
+      const k=i++;
+      try{ out[k]=await fn(items[k]); }catch(e){ out[k]={error:String(e.message||e)}; }
+      if(onEach) onEach(k+1,items.length);
+    }
+  }));
+  return out;
+}
+
+/* ══════════ FMP ══════════ */
+let CALLS=0;
+async function fmp(path){
+  if(!ST.keys.fmp) throw new Error('No FMP key');
+  const url=`https://financialmodelingprep.com${path}${path.includes('?')?'&':'?'}apikey=${ST.keys.fmp}`;
+  CALLS++;
+  const r=await timeout(fetch(url),15000,'FMP');
+  const txt=await r.text();
+  if(!r.ok) throw new Error(`HTTP ${r.status} ${txt.slice(0,90)}`);
+  let j; try{ j=JSON.parse(txt); }catch(e){ throw new Error('Non-JSON response'); }
+  if(j&&(j['Error Message']||j.error)) throw new Error(String(j['Error Message']||j.error).slice(0,110));
+  return j;
+}
+const asArr=d=>Array.isArray(d)?d:(d&&Array.isArray(d.historical)?d.historical:[]);
+
+/* Resolve which endpoint generation answers, once, then remember it. */
+async function probeEndpoints(){
+  const tests=[
+    {k:'econ', paths:['/stable/economic-indicators?name=GDP','/api/v3/economic?name=GDP'], lbl:'Economics'},
+    {k:'curve',paths:['/stable/treasury-rates','/api/v4/treasury'],                        lbl:'Treasury'},
+    {k:'quote',paths:['/api/v3/quote/SPY','/stable/quote?symbol=SPY'],                     lbl:'Quotes'},
+    {k:'hist', paths:['/api/v3/historical-price-full/SPY?from=2024-01-01','/stable/historical-price-eod/full?symbol=SPY&from=2024-01-01'], lbl:'History'},
+    {k:'funda',paths:['/stable/profile?symbol=AAPL','/api/v3/profile/AAPL'],                 lbl:'Fundamentals'}
+  ];
+  const el=document.getElementById('ep-status');
+  if(el) el.innerHTML='<span class="spin"></span> probing…';
+  for(const t of tests){
+    ST.endpoints[t.k]=null;
+    for(const p of t.paths){
+      try{ const d=await fmp(p); if(asArr(d).length){ ST.endpoints[t.k]=p.split('?')[0]; break; } }
+      catch(e){ /* try next generation */ }
+    }
+  }
+  save(); renderEndpoints();
+  const ok=Object.values(ST.endpoints).filter(Boolean).length;
+  dot('d-fmp',ok===0?'err':ok<4?'warn':'ok');
+  return ST.endpoints;
+}
+function epPath(k,q){
+  const base=ST.endpoints[k]; if(!base) return null;
+  if(k==='econ')  return base.includes('stable')?`${base}?name=${q}`:`${base}?name=${q}`;
+  if(k==='curve') return base;
+  if(k==='quote') return base.includes('stable')?`${base}?symbol=${q}`:`${base}/${q}`;
+  if(k==='hist')  return base.includes('stable')?`${base}?symbol=${q}&from=2006-01-01`:`${base}/${q}?from=2006-01-01`;
+  return null;
+}
+/* Company statement endpoints all follow the same stable-vs-legacy shape as
+   everything else probed above, so resolve the style once from the funda
+   probe and apply it uniformly rather than re-probing per statement. */
+const FUNDA_MAP={
+  profile:   {stable:'/stable/profile',                legacy:'/api/v3/profile'},
+  income:    {stable:'/stable/income-statement',        legacy:'/api/v3/income-statement'},
+  balance:   {stable:'/stable/balance-sheet-statement', legacy:'/api/v3/balance-sheet-statement'},
+  cashflow:  {stable:'/stable/cash-flow-statement',     legacy:'/api/v3/cash-flow-statement'},
+  ratios:    {stable:'/stable/ratios',                  legacy:'/api/v3/ratios'},
+  keymetrics:{stable:'/stable/key-metrics',             legacy:'/api/v3/key-metrics'}
+};
+function fundaPath(kind,symbol,limit){
+  const resolved=ST.endpoints.funda;
+  const style=resolved&&resolved.includes('stable')?'stable':'legacy';
+  const base=FUNDA_MAP[kind][style];
+  if(kind==='profile') return style==='stable'?`${base}?symbol=${symbol}`:`${base}/${symbol}`;
+  const lim=limit||5;
+  return style==='stable'?`${base}?symbol=${symbol}&period=annual&limit=${lim}`:`${base}/${symbol}?period=annual&limit=${lim}`;
+}
+
+/* ══════════ REFRESH ══════════ */
+let BUSY=false;
+async function refreshAll(){
+  if(BUSY) return;
+  if(!ST.keys.fmp){ toast('Add your FMP key in Settings first'); go('set'); return; }
+  BUSY=true; CALLS=0;
+  const btn=document.getElementById('btn-refresh');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  ST.lastSnapshot=snapshotScores();
+  try{
+    if(!Object.values(ST.endpoints).some(Boolean)) await probeEndpoints();
+    dot('d-fmp','live');
+
+    // 1. economics
+    const econ=CATALOG.filter(c=>c.src==='econ');
+    if(ST.endpoints.econ){
+      await pool(econ,async c=>{
+        for(const name of c.cand){
+          try{
+            const rows=asArr(await fmp(epPath('econ',name)));
+            if(rows.length){
+              ST.series[c.id]=sortNewestFirst(rows.map(r=>({d:r.date,v:+r.value})).filter(r=>Number.isFinite(r.v)));
+              ST.meta[c.id]={asof:rows[0].date,src:'FMP · '+name,resolved:true};
+              return;
+            }
+          }catch(e){}
+        }
+        ST.meta[c.id]={asof:ST.meta[c.id]?.asof||null,src:'unresolved',resolved:false};
+      },4,(n,t)=>{btn.innerHTML=`<span class="spin"></span> ${n}/${t}`;});
+    }
+
+    // 2. treasury curve → derived series
+    if(ST.endpoints.curve){
+      try{
+        const rows=asArr(await fmp(epPath('curve')));
+        if(rows.length){
+          for(const c of CATALOG.filter(x=>x.src==='curve')){
+            const out=sortNewestFirst(rows.map(r=>{ let v=c.f(r); if(v!=null&&c.scale) v*=c.scale; return {d:r.date,v}; })
+                          .filter(r=>Number.isFinite(r.v)));
+            if(out.length){ ST.series[c.id]=out; ST.meta[c.id]={asof:out[0].d,src:'FMP · treasury',resolved:true}; }
+          }
+        }
+      }catch(e){ toast('Treasury: '+e.message); }
+    }
+
+    // 3. VIX
+    if(ST.endpoints.hist){
+      try{
+        const rows=asArr(await fmp(epPath('hist','^VIX')));
+        if(rows.length){
+          const sorted=sortNewestFirst(rows.map(r=>({d:r.date,v:+r.close})).filter(r=>Number.isFinite(r.v)));
+          ST.series.vix=sorted;
+          ST.meta.vix={asof:sorted[0]?.d,src:'FMP · ^VIX',resolved:true};
+        }
+      }catch(e){}
+    }
+
+    // 4. sectors
+    await loadSectors(btn);
+
+    ST.lastSeen=new Date().toISOString();
+    save(); renderAll();
+    toast(`Refreshed · ${CALLS} API calls`);
+  }catch(e){
+    toast('Refresh failed: '+e.message); dot('d-fmp','err');
+  }finally{
+    BUSY=false; btn.disabled=false; btn.textContent='Refresh';
+    const ok=Object.values(ST.endpoints).filter(Boolean).length;
+    dot('d-fmp',ok===0?'err':ok<4?'warn':'ok');
+  }
+}
+
+async function loadSectors(btn){
+  if(!ST.endpoints.hist) return;
+  const syms=[...SECTORS.map(s=>s.t),BENCH];
+  const res=await pool(syms,async t=>{
+    const rows=asArr(await fmp(epPath('hist',t)));
+    return {t,rows:sortNewestFirst(rows.map(r=>({d:r.date,v:+r.close})).filter(r=>Number.isFinite(r.v)))};
+  },4,(n,tot)=>{ if(btn) btn.innerHTML=`<span class="spin"></span> ${n}/${tot}`; });
+
+  const by={}; res.forEach(r=>{ if(r&&r.rows&&r.rows.length) by[r.t]=r.rows; });
+  const bench=by[BENCH];
+  ST.sectors={};
+  for(const s of SECTORS){
+    const r=by[s.t]; if(!r||r.length<220) continue;
+    const px=r.map(x=>x.v);
+    const ret=n=>px.length>n?(px[0]/px[n]-1)*100:null;
+    const ma=n=>px.length>=n?px.slice(0,n).reduce((a,b)=>a+b,0)/n:null;
+    const m50=ma(50), m200=ma(200);
+    let rs=null;
+    if(bench&&bench.length>63){
+      const br=(bench[0].v/bench[63].v-1)*100, sr=ret(63);
+      if(sr!=null) rs=sr-br;
+    }
+    ST.sectors[s.t]={name:s.n,px:px[0],r21:ret(21),r63:ret(63),r126:ret(126),rs,
+      m50:m50?(px[0]/m50-1)*100:null, m200:m200?(px[0]/m200-1)*100:null, asof:r[0].d,
+      hist:r.slice(0,760)};  // capped history for the detail chart — 50/200D MA needs ~260, cap gives headroom
+  }
+  if(Object.keys(ST.sectors).length) ST.sectorsFetchedAt=new Date().toISOString();
+}
+
+/* ══════════ VALUATION ══════════
+   Phase 2: single-company intrinsic value range. Three independent methods
+   (DCF, modified Graham, historical multiples) rather than one point
+   estimate — per the plan's own "ranges over false precision" principle.
+   Quality/Certainty are scored from business fundamentals, not price
+   volatility, per "business risk over price noise". */
+
+const DEFAULT_ASSUMPTIONS={growth:0.08,discount:0.09,termGrowth:0.025,aaaYield:0.05};
+
+async function fetchCompany(ticker){
+  if(!ST.endpoints.funda) await probeEndpoints();
+  if(!ST.endpoints.funda) throw new Error('Fundamentals endpoint unresolved — check your FMP plan covers statements.');
+
+  // Each statement fetched independently — a plan-tier block (HTTP 402) on
+  // one shouldn't take the whole lookup down. Step down to limit=1 once if
+  // limit=5 itself gets rejected, since some tiers only allow the latest period.
+  const byRawDateDesc=(a,b)=>String(b.date||'').localeCompare(String(a.date||''));
+  async function pull(kind){
+    try{ return {rows:asArr(await fmp(fundaPath(kind,ticker,5))).sort(byRawDateDesc),err:null}; }
+    catch(e){
+      if(/limit|premium/i.test(e.message)){
+        try{ return {rows:asArr(await fmp(fundaPath(kind,ticker,1))).sort(byRawDateDesc),err:null}; }
+        catch(e2){ return {rows:[],err:e2.message}; }
+      }
+      return {rows:[],err:e.message};
+    }
+  }
+  const [profileR,income,balance,cashflow,ratios,keymetrics]=await Promise.all([
+    fmp(fundaPath('profile',ticker)).then(d=>({rows:asArr(d),err:null})).catch(e=>({rows:[],err:e.message})),
+    pull('income'), pull('balance'), pull('cashflow'), pull('ratios'), pull('keymetrics')
+  ]);
+  const p=profileR.rows[0]||null;
+  if(!p && !income.rows.length) throw new Error(`No fundamentals returned for ${ticker} — check the symbol, or your FMP plan may not cover this endpoint (${income.err||profileR.err||'unknown error'}).`);
+  const errors={};
+  [['profile',profileR],['income',income],['balance',balance],['cashflow',cashflow],['ratios',ratios],['keymetrics',keymetrics]]
+    .forEach(([k,r])=>{ if(r.err&&!r.rows.length) errors[k]=r.err; });
+  return {
+    profile:p, income:income.rows, balance:balance.rows, cashflow:cashflow.rows,
+    ratios:ratios.rows, keymetrics:keymetrics.rows, errors,
+    fetchedAt:new Date().toISOString()
+  };
+}
+
+/* ── shared math helpers ── */
+function cagr(newest,oldest,years){
+  if(newest==null||oldest==null||oldest<=0||years<=0) return null;
+  return Math.pow(newest/oldest,1/years)-1;
+}
+function volOfGrowth(valsNewestFirst){
+  // stdev of period-over-period growth rates — a stability read, not a level.
+  const asc=[...valsNewestFirst].reverse().filter(Number.isFinite);
+  const g=[];
+  for(let i=1;i<asc.length;i++){ if(asc[i-1]!==0) g.push((asc[i]-asc[i-1])/Math.abs(asc[i-1])); }
+  if(g.length<2) return null;
+  const m=g.reduce((a,b)=>a+b,0)/g.length;
+  return Math.sqrt(g.reduce((a,b)=>a+(b-m)**2,0)/g.length);
+}
+function bandScore(val,goodAt,badAt){
+  // linear map, clamped 0-100. Works whether "good" is high or low.
+  if(val==null) return null;
+  const t=(val-badAt)/(goodAt-badAt);
+  return Math.max(0,Math.min(100,t*100));
+}
+
+/* ── DCF: two-stage, FCFF discounted, Gordon-growth terminal value ── */
+function calcDCF({fcfBase,growth,discount,termGrowth,years,netDebt,shares}){
+  if(!fcfBase||fcfBase<=0||!shares||discount<=termGrowth) return null;
+  let pv=0,fcf=fcfBase;
+  for(let t=1;t<=years;t++){ fcf*=(1+growth); pv+=fcf/Math.pow(1+discount,t); }
+  const tv=(fcf*(1+termGrowth))/(discount-termGrowth);
+  const pvTV=tv/Math.pow(1+discount,years);
+  const equityValue=(pv+pvTV)-(netDebt||0);
+  const perShare=equityValue/shares;
+  return {perShare,pv,pvTV,equityValue};
+}
+/* ── Modified Graham: V = EPS × (8.5 + 2g) × 4.4 / Y ── */
+function calcGraham({eps,growth,aaaYield}){
+  if(!eps||eps<=0||!aaaYield) return null;
+  const g=growth*100, y=aaaYield*100;
+  return (eps*(8.5+2*g)*4.4)/y;
+}
+/* ── Historical multiples: current EPS × own trailing average P/E ── */
+function calcMultiples({eps,avgPE}){
+  if(!eps||eps<=0||!avgPE||avgPE<=0) return null;
+  return eps*avgPE;
+}
+
+function buildValuation(co,assumptions){
+  const inc=co.income, bal=co.balance, cf=co.cashflow, rat=co.ratios, km=co.keymetrics, p=co.profile;
+  const years=Math.min(inc.length,bal.length,cf.length)-1;
+  const revNew=inc[0]?.revenue, revOld=inc[years]?.revenue;
+  const growthDefault=Math.max(-0.05,Math.min(0.30,cagr(revNew,revOld,years)??0.05));
+  const a=Object.assign({},DEFAULT_ASSUMPTIONS,{growth:growthDefault},assumptions||{});
+
+  const fcfVals=cf.slice(0,3).map(r=>r.freeCashFlow).filter(Number.isFinite);
+  const fcfBase=fcfVals.length?fcfVals.reduce((x,y)=>x+y,0)/fcfVals.length:null;
+  const eps=inc[0]?.epsdiluted??inc[0]?.eps??null;
+  const shares=inc[0]?.weightedAverageShsOutDil||p?.mktCap&&p?.price?p.mktCap/p.price:null;
+  const netDebt=bal[0]?.netDebt??((bal[0]?.totalDebt||0)-(bal[0]?.cashAndCashEquivalents||0));
+  const peVals=rat.slice(0,8).map(r=>r.priceEarningsRatio).filter(v=>Number.isFinite(v)&&v>0&&v<60);
+  const avgPE=peVals.length?peVals.reduce((x,y)=>x+y,0)/peVals.length:null;
+
+  const scen=(mult,discAdj)=>({
+    dcf:calcDCF({fcfBase,growth:a.growth*mult,discount:a.discount+discAdj,termGrowth:a.termGrowth,years:5,netDebt,shares}),
+    graham:calcGraham({eps,growth:a.growth*mult,aaaYield:a.aaaYield}),
+    mult:calcMultiples({eps,avgPE:avgPE?avgPE*(1+discAdj*-4):null}) // widen/compress multiple opposite to discount bump
+  });
+  const cons=scen(0.5,0.02), base=scen(1,0), opt=scen(1.35,-0.015);
+  const blend=s=>{ const vs=[s.dcf?.perShare,s.graham,s.mult].filter(v=>Number.isFinite(v)&&v>0); return vs.length?vs.reduce((x,y)=>x+y,0)/vs.length:null; };
+  const range={low:blend(cons),base:blend(base),high:blend(opt)};
+
+  // ── quality & certainty ──
+  const revCV=volOfGrowth(inc.map(r=>r.revenue));
+  const epsCV=volOfGrowth(inc.map(r=>r.epsdiluted??r.eps));
+  const fcfCV=volOfGrowth(cf.map(r=>r.freeCashFlow));
+  const ebit=inc[0]?.operatingIncome, tax=inc[0]?.incomeTaxExpense,pretax=inc[0]?.incomeBeforeTax;
+  const taxRate=(tax!=null&&pretax)?Math.max(0,Math.min(0.4,tax/pretax)):0.21;
+  const investedCap=(bal[0]?.totalDebt||0)+(bal[0]?.totalStockholdersEquity||0)-(bal[0]?.cashAndCashEquivalents||0);
+  const roic=(ebit!=null&&investedCap>0)?(ebit*(1-taxRate))/investedCap:null;
+  const intCov=(ebit!=null&&inc[0]?.interestExpense)?ebit/Math.abs(inc[0].interestExpense):null;
+  const de=rat[0]?.debtEquityRatio??null;
+  const cashConv=(cf[0]?.freeCashFlow!=null&&inc[0]?.netIncome)?cf[0].freeCashFlow/inc[0].netIncome:null;
+
+  const qParts=[bandScore(roic,0.20,0.02),bandScore(intCov,15,1.5),bandScore(de,0.3,3),bandScore(cashConv,1.1,0.3)].filter(v=>v!=null);
+  const quality=qParts.length?qParts.reduce((x,y)=>x+y,0)/qParts.length:null;
+  const cParts=[bandScore(revCV,0.03,0.35),bandScore(epsCV,0.05,0.7),bandScore(fcfCV,0.08,0.9)].filter(v=>v!=null);
+  const certainty=cParts.length?cParts.reduce((x,y)=>x+y,0)/cParts.length:null;
+
+  const price=p?.price??null;
+  const mos=(range.base&&price)?((range.base-price)/range.base)*100:null;
+
+  return {a,eps,fcfBase,netDebt,shares,avgPE,years,range,price,mos,
+    methods:{dcf:base.dcf?.perShare??null,graham:base.graham,mult:base.mult},
+    quality,certainty,roic,intCov,de,cashConv,revCV,epsCV,fcfCV};
+}
+
+function fmt$(n){ return n==null||!Number.isFinite(n)?'—':'$'+fmtN(n,2); }
+function fmtPctA(n){ return n==null?'—':sign(n*100)+(n*100).toFixed(1)+'%'; }
+
+function assumptionsRow(id,label,val,min,max,step,fmtFn,tip){
+  return `<div class="fld">
+    <label class="f" style="display:flex;justify-content:space-between" data-tip="${esc(tip)}">
+      <span>${esc(label)}</span><span class="num" style="color:var(--gold-hi)">${fmtFn(val)}</span>
+    </label>
+    <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}" oninput="onValSlider()">
+  </div>`;
+}
+
+function renderValuation(ticker){
+  const host=document.getElementById('val-body');
+  const co=ST.companies[ticker];
+  if(!co){ host.innerHTML='<div class="empty"><b>No company loaded</b><p>Look up a ticker above.</p></div>'; return; }
+  const v=buildValuation(co,co.assumptions);
+  const p=co.profile;
+  const fresh=freshEnough(co.fetchedAt);
+
+  const lo=v.range.low,ba=v.range.base,hi=v.range.high,price=v.price;
+  const allVals=[lo,ba,hi,price].filter(Number.isFinite);
+  const trackMin=allVals.length?Math.min(...allVals)*0.85:0, trackMax=allVals.length?Math.max(...allVals)*1.15:1;
+  const pos=x=>x==null?null:Math.max(0,Math.min(100,((x-trackMin)/(trackMax-trackMin))*100));
+  const mosCls=v.mos==null?'flat':v.mos>=15?'pos':v.mos<=-15?'neg':'warn';
+  const qh=heuristic(v.quality), ch=heuristic(v.certainty);
+  const errKeys=Object.keys(co.errors||{});
+  const errBanner=errKeys.length?`<div class="note warn" style="margin-bottom:13px;border-radius:var(--r)">
+      <strong>${errKeys.length} of 6 sources unavailable</strong> on your FMP plan: ${errKeys.map(esc).join(', ')}.
+      Methods needing that data will show — as a range endpoint, not a crash.</div>`:'';
+
+  host.innerHTML=`
+    ${errBanner}
+    <div class="company-header glass card" style="margin-bottom:13px;display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:flex-end">
+      <div>
+        <div style="font-family:var(--disp);font-weight:900;font-size:1.9rem;letter-spacing:-.02em">${esc(p.symbol)}</div>
+        <div style="color:var(--ink-mid);font-size:.9rem;margin-top:3px">${esc(p.companyName||'')}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">
+          ${p.sector?`<span class="tag" style="font-family:var(--mono);font-size:9.5px;border:1px solid var(--edge);padding:3px 9px;border-radius:999px;color:var(--ink-mid)">${esc(p.sector)}</span>`:''}
+          ${p.industry?`<span class="tag" style="font-family:var(--mono);font-size:9.5px;border:1px solid var(--edge);padding:3px 9px;border-radius:999px;color:var(--ink-mid)">${esc(p.industry)}</span>`:''}
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="num" style="font-size:1.7rem;font-weight:700">${fmt$(price)}</div>
+        <div class="num" style="font-size:.78rem;color:var(--ink-low)">mkt cap ${p.mktCap?fmtN(p.mktCap):'—'}</div>
+        <div class="asof ${fresh?'':'stale'}" style="justify-content:flex-end;margin-top:6px"><i class="dot ${fresh?'ok':'warn'}"></i>synced ${agoStr(co.fetchedAt)}</div>
+      </div>
+    </div>
+
+    <div class="glass spine-stack" style="margin-bottom:13px">
+      <div class="spine-hd">
+        <h2 data-tip="Blend of DCF, modified Graham, and historical P/E, each run under conservative/base/optimistic growth assumptions.">Fair Value Range</h2>
+        <span class="badge ${mosCls}" data-tip="How far current price sits below (positive) or above (negative) the base-case fair value.">${v.mos==null?'—':sign(v.mos)+v.mos.toFixed(0)+'% margin of safety'}</span>
+      </div>
+      <div class="track" style="height:34px">
+        ${lo!=null?`<span class="tick ghost" style="left:${pos(lo)}%" data-tip="Conservative: ${fmt$(lo)}"></span>`:''}
+        ${hi!=null?`<span class="tick ghost" style="left:${pos(hi)}%" data-tip="Optimistic: ${fmt$(hi)}"></span>`:''}
+        ${ba!=null?`<span class="tick" style="left:${pos(ba)}%"></span><span class="tick-lbl" style="left:${pos(ba)}%">${fmt$(ba)}</span>`:''}
+        ${price!=null?`<span class="tick" style="left:${pos(price)}%;background:var(--teal);box-shadow:0 0 12px rgba(63,208,201,.85)"></span>`:''}
+      </div>
+      <div class="spine-legend" style="margin-top:10px">
+        <i><span class="sw" style="background:var(--gold)"></span>Base fair value</i>
+        <i><span class="sw" style="background:rgba(147,168,200,.42)"></span>Conservative / optimistic</i>
+        <i><span class="sw" style="background:var(--teal)"></span>Current price</i>
+      </div>
+    </div>
+
+    <div class="grid g3" style="margin-bottom:13px">
+      <div class="glass card tile"><div class="tile-nm">DCF (base case)</div><div class="tile-v">${fmt$(v.methods.dcf)}</div><div class="tile-u">2-stage FCFF, 5yr</div></div>
+      <div class="glass card tile"><div class="tile-nm">Modified Graham</div><div class="tile-v">${fmt$(v.methods.graham)}</div><div class="tile-u">EPS×(8.5+2g)×4.4/Y</div></div>
+      <div class="glass card tile"><div class="tile-nm">Historical P/E</div><div class="tile-v">${fmt$(v.methods.mult)}</div><div class="tile-u">avg P/E ${v.avgPE?v.avgPE.toFixed(1):'—'}× · ${v.years}yr</div></div>
+    </div>
+
+    <div class="grid g2" style="margin-bottom:13px">
+      <div class="glass card">
+        <div class="card-hd"><h3 data-tip="Balance-sheet strength and capital efficiency — not price behavior.">Quality</h3><span class="badge ${qh.cls}">${qh.lbl}</span></div>
+        <div class="grid g4">
+          <div class="stat-cell"><i>ROIC</i><b class="num">${v.roic==null?'—':(v.roic*100).toFixed(1)+'%'}</b></div>
+          <div class="stat-cell"><i>Interest cover</i><b class="num">${v.intCov==null?'—':v.intCov.toFixed(1)+'×'}</b></div>
+          <div class="stat-cell"><i>Debt / equity</i><b class="num">${v.de==null?'—':v.de.toFixed(2)}</b></div>
+          <div class="stat-cell"><i>Cash conversion</i><b class="num">${v.cashConv==null?'—':v.cashConv.toFixed(2)}</b></div>
+        </div>
+      </div>
+      <div class="glass card">
+        <div class="card-hd"><h3 data-tip="Volatility of revenue/EPS/FCF growth rates — fundamental predictability, not stock-price volatility.">Certainty</h3><span class="badge ${ch.cls}">${ch.lbl}</span></div>
+        <div class="grid g3">
+          <div class="stat-cell"><i>Revenue vol</i><b class="num">${v.revCV==null?'—':(v.revCV*100).toFixed(1)+'%'}</b></div>
+          <div class="stat-cell"><i>EPS vol</i><b class="num">${v.epsCV==null?'—':(v.epsCV*100).toFixed(1)+'%'}</b></div>
+          <div class="stat-cell"><i>FCF vol</i><b class="num">${v.fcfCV==null?'—':(v.fcfCV*100).toFixed(1)+'%'}</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass card">
+      <div class="card-hd"><h3 data-tip="Every scenario recalculates live as you move these — nothing is hardcoded.">Assumptions</h3><span class="k">base case</span></div>
+      <div class="grid g2">
+        ${assumptionsRow('a-growth','Growth rate',v.a.growth,-0.05,0.30,0.005,x=>(x*100).toFixed(1)+'%','Base-case revenue/FCF growth. Defaults to trailing revenue CAGR, clamped to -5%..30%.')}
+        ${assumptionsRow('a-discount','Discount rate',v.a.discount,0.04,0.16,0.0025,x=>(x*100).toFixed(2)+'%','Rate future cash flows are discounted at — a WACC proxy. Higher = more conservative.')}
+        ${assumptionsRow('a-term','Terminal growth',v.a.termGrowth,0.005,0.045,0.0025,x=>(x*100).toFixed(2)+'%','Perpetual growth rate applied after year 5 in the DCF. Should stay near long-run GDP growth.')}
+        ${assumptionsRow('a-aaa','AAA bond yield',v.a.aaaYield,0.02,0.08,0.0025,x=>(x*100).toFixed(2)+'%','Feeds the Graham formula\u2019s denominator. Update to the current AAA corporate yield periodically.')}
+      </div>
+      <p class="hint">Conservative uses 0.5× growth / +2pt discount; optimistic uses 1.35× growth / −1.5pt discount. Blended range = average of all three methods per scenario.</p>
+    </div>`;
+}
+
+function onValSlider(){
+  const ticker=ST.lastValTicker; if(!ticker||!ST.companies[ticker]) return;
+  ST.companies[ticker].assumptions={
+    growth:+document.getElementById('a-growth').value,
+    discount:+document.getElementById('a-discount').value,
+    termGrowth:+document.getElementById('a-term').value,
+    aaaYield:+document.getElementById('a-aaa').value
+  };
+  save(); renderValuation(ticker);
+}
+
+async function lookupCompany(){
+  const raw=document.getElementById('val-ticker').value.trim().toUpperCase();
+  if(!raw) return;
+  if(!ST.keys.fmp){ toast('Add your FMP key in Settings first'); go('set'); return; }
+  const btn=document.getElementById('btn-val-go');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  document.getElementById('val-body').innerHTML='<div class="loading" style="text-align:center;padding:50px 0"><span class="spin"></span> pulling '+esc(raw)+'…</div>';
+  try{
+    const co=await fetchCompany(raw);
+    co.assumptions=(ST.companies[raw]&&ST.companies[raw].assumptions)||null;
+    ST.companies[raw]=co; ST.lastValTicker=raw; save();
+    renderValuation(raw);
+  }catch(e){
+    document.getElementById('val-body').innerHTML=`<div class="note warn" style="border-radius:var(--r)">${esc(e.message)}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='Look up';
+  }
+}
+
+/* Standalone trigger for the Sectors tab — previously this data only ever
+   loaded as a side effect of the header's global Refresh, with no feedback
+   if the historical-price endpoint didn't resolve or a plan's history was
+   too shallow for the 200D MA. Both failure modes now say so explicitly. */
+async function refreshSectorsOnly(){
+  const btn=document.getElementById('btn-sect-refresh');
+  const host=document.getElementById('sect-body');
+  if(!ST.keys.fmp){ toast('Add your FMP key in Settings first'); go('set'); return; }
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  host.innerHTML='<div class="loading" style="text-align:center;padding:50px 0"><span class="spin"></span> pulling sector history…</div>';
+  try{
+    if(!ST.endpoints.hist) await probeEndpoints();
+    if(!ST.endpoints.hist) throw new Error('Historical price endpoint unresolved — check that your FMP plan includes historical prices, then Re-probe in Settings.');
+    await loadSectors();
+    save();
+    if(!Object.keys(ST.sectors).length){
+      host.innerHTML='<div class="note warn" style="border-radius:var(--r)">Endpoint resolved, but no sector ETF returned 220+ trading days of price history — that\'s needed for the 200-day trend calc. Common on lower FMP plan tiers with limited historical depth.</div>';
+      return;
+    }
+    renderSectors(); renderBreadth();
+    toast('Sectors refreshed');
+  }catch(e){
+    host.innerHTML=`<div class="note warn" style="border-radius:var(--r)">${esc(e.message)}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='Refresh sectors';
+  }
+}
+
+/* ══════════ GROQ ══════════ */
+async function groq(path,body){
+  if(!ST.keys.ai) throw new Error('No Groq key');
+  const opt={headers:{'Authorization':'Bearer '+ST.keys.ai}};
+  if(body){ opt.method='POST'; opt.headers['Content-Type']='application/json'; opt.body=JSON.stringify(body); }
+  const r=await timeout(fetch('https://api.groq.com/openai/v1'+path,opt),40000,'Groq');
+  const j=await r.json();
+  if(!r.ok) throw new Error(j?.error?.message||('HTTP '+r.status));
+  return j;
+}
+async function loadModels(){
+  if(!ST.keys.ai){ dot('d-ai','err'); return; }
+  try{
+    const j=await groq('/models');
+    const ids=(j.data||[]).map(m=>m.id)
+      .filter(id=>!/whisper|guard|orpheus|tts|prompt-guard/i.test(id)).sort();
+    ST.models=ids;
+    if(!ids.includes(ST.model)) ST.model=ids.find(i=>i.includes('gpt-oss-120b'))||ids[0]||ST.model;
+    save(); dot('d-ai','ok'); renderModels();
+  }catch(e){ dot('d-ai','err'); const n=document.getElementById('m-note'); if(n) n.innerHTML=`<div class="note warn">${esc(e.message)}</div>`; }
+}
+/* strip leaked chain-of-thought — cheap insurance, kept across model changes */
+const clean=t=>String(t||'').replace(/<think>[\s\S]*?<\/think>/gi,'')
+  .replace(/^thinking process:[\s\S]*?(?=\n{2,})/i,'').trim();
+
+async function runBrief(){
+  const el=document.getElementById('brief');
+  if(!ST.keys.ai){ el.innerHTML='<div class="note warn">Add a Groq key in Settings to generate briefings.</div>'; return; }
+  el.innerHTML='<span class="spin"></span> reading the board…';
+  const payload=PILLARS.map(p=>{
+    const s=pillarScore(p.id);
+    const mem=CATALOG.filter(c=>c.p===p.id).map(c=>{
+      const st=stats(ST.series[c.id],c); if(!st) return null;
+      return {name:c.nm,value:+st.cur.toFixed(2),unit:c.u,percentile:+st.pct.toFixed(0),
+              z:+st.z.toFixed(2),chg3m:st.c3==null?null:+st.c3.toFixed(2),
+              accelerating:st.accel==null?null:st.accel>0,asof:ST.meta[c.id]?.asof||null};
+    }).filter(Boolean);
+    return {pillar:p.name,score:s?+s.now.toFixed(0):null,prior3m:s?.prior?+s.prior.toFixed(0):null,indicators:mem};
+  });
+  try{
+    const j=await groq('/chat/completions',{
+      model:ST.model, max_tokens:900, temperature:0.3, reasoning_effort:'low',
+      messages:[
+        {role:'system',content:'You are a buy-side macro strategist writing a terse internal note. Rules: no preamble, no restating the data back, no bullet lists. Three short paragraphs of plain prose. Paragraph 1: what the regime currently is. Paragraph 2: what moved and whether the pillars agree or contradict each other — name the specific contradiction if one exists. Paragraph 3: the single thing that would change your read, and what to watch for it. Wrap at most five key phrases in **bold**. Never give investment advice or price targets. If a pillar has thin coverage, say so plainly rather than inferring.'},
+        {role:'user',content:'Pillar percentiles are 0-100 where 100 = most supportive of risk assets (already sign-adjusted). Data:\n'+JSON.stringify(payload)}
+      ]
+    });
+    const txt=clean(j.choices?.[0]?.message?.content);
+    if(!txt){ el.innerHTML='<div class="note warn">Model returned nothing. Try another model in Settings.</div>'; return; }
+    ST.brief=txt; save();
+    el.innerHTML=txt.split(/\n{2,}/).map(p=>'<p>'+esc(p).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</p>').join('')
+      +`<div class="asof">generated ${new Date().toLocaleString()} · ${esc(ST.model)}</div>`;
+  }catch(e){ el.innerHTML=`<div class="note warn">${esc(e.message)}</div>`; }
+}
+
+/* ══════════ AI CYCLE READ ══════════
+   Structured judgment layer, kept strictly separate from the objective percentile
+   scores: this never overwrites a pillar reading, it's an explicitly-labeled
+   overlay the person chooses to request and can ignore. */
+async function runCycle(){
+  if(!ST.keys.ai){ toast('Add a Groq key in Settings first'); go('set'); return; }
+  renderCycle(true);
+  const pillarData=PILLARS.map(p=>{
+    const s=pillarScore(p.id);
+    const mem=CATALOG.filter(c=>c.p===p.id).map(c=>{
+      const st=stats(ST.series[c.id],c); if(!st) return null;
+      return {name:c.nm,percentile:+st.pct.toFixed(0),chg3m:st.c3==null?null:+st.c3.toFixed(2),accelerating:st.accel==null?null:st.accel>0};
+    }).filter(Boolean);
+    return {pillar:p.name,score:s?+s.now.toFixed(0):null,prior3m:s?.prior?+s.prior.toFixed(0):null,coverage:`${mem.length}/${CATALOG.filter(c=>c.p===p.id).length}`,indicators:mem};
+  });
+  const breadth=sectorBreadth();
+  try{
+    const j=await groq('/chat/completions',{
+      model:ST.model, max_tokens:1100, temperature:0.25, reasoning_effort:'low',
+      messages:[
+        {role:'system',content:'You are a macro strategist classifying the business cycle from supplied indicator data only. Respond with ONLY a raw JSON object, no markdown fences, no text outside the JSON. Schema: {"stage":one of "Early Expansion"|"Mid Expansion"|"Late Expansion"|"Slowdown"|"Contraction"|"Recovery","confidence":integer 0-100,"pillars":[{"pillar":string,"read":one of "Bullish"|"Neutral"|"Risk-Off","why":string under 15 words}],"drivers":[string under 12 words, max 4],"watch":[string under 12 words, max 3],"summary":string, 2-3 sentences, plain prose}. Rules: base every claim only on the supplied data; if a pillar has thin coverage (fewer than half its indicators present) say so in "why" rather than inferring from silence; confidence should be lower when coverage is thin or pillars contradict each other; never give investment advice, price targets, or position sizing; this is a probabilistic read for a human decision-maker, not a directive.'},
+        {role:'user',content:'Pillar data (percentiles are 0-100, already sign-adjusted so 100 = most supportive of risk assets):\n'+JSON.stringify(pillarData)+'\n\nSector breadth: '+JSON.stringify(breadth)}
+      ]
+    });
+    const raw=clean(j.choices?.[0]?.message?.content||'');
+    const m=raw.replace(/```json|```/g,'').trim().match(/\{[\s\S]*\}/);
+    if(!m) throw new Error('Model did not return parseable JSON');
+    const parsed=JSON.parse(m[0]);
+    if(!parsed.stage||!Array.isArray(parsed.pillars)) throw new Error('Response missing required fields');
+    ST.cycle={...parsed,asof:new Date().toISOString(),model:ST.model,builtFrom:ST.lastSeen};
+    save(); renderCycle();
+  }catch(e){ renderCycle(false,e.message); }
+}
+
+/* ══════════ RENDER ══════════ */
+function renderAll(){ renderCycle(); renderSpines(); renderChanges(); renderIndicators(); renderSectors(); renderBreadth(); renderLab(); renderManual(); renderEndpoints(); renderModels(); renderFoot(); renderFreshness(); }
+
+function renderFreshness(){
+  const setLight=(dotId,lblId,iso)=>{
+    const d=document.getElementById(dotId), l=document.getElementById(lblId);
+    if(!d||!l) return;
+    if(!iso){ d.className='dot'; l.textContent='never synced'; return; }
+    d.className='dot '+(freshEnough(iso)?'ok':'warn');
+    l.textContent='synced '+agoStr(iso);
+  };
+  setLight('d-sync','sync-lbl',ST.lastSeen);
+  setLight('d-sect-sync','sect-sync-lbl',ST.sectorsFetchedAt);
+}
+
+/* ══════════ CYCLE READ ══════════ */
+const READ_CLS={Bullish:'pos',Neutral:'warn','Risk-Off':'neg'};
+function renderCycle(loading,err){
+  const host=document.getElementById('cycle-card'); if(!host) return;
+  if(loading){
+    host.innerHTML=`<div class="cycle-hd"><h2>Cycle Read</h2></div><div class="empty" style="padding:26px"><span class="spin"></span><p style="margin-top:11px">Reading six pillars and sector breadth\u2026</p></div>`;
+    return;
+  }
+  if(err){
+    host.innerHTML=`<div class="cycle-hd"><h2>Cycle Read</h2><button class="btn sm gold" onclick="runCycle()">Retry</button></div><div class="note warn">${esc(err)}</div>`;
+    return;
+  }
+  const c=ST.cycle;
+  if(!c){
+    host.innerHTML=`<div class="cycle-hd">
+        <h2 data-tip="One Groq call reads all six pillars plus sector breadth and proposes a cycle stage with per-pillar reasoning. It's a labeled, requestable overlay — never a silent input to the percentile scores above.">Cycle Read</h2>
+        <button class="btn gold" onclick="runCycle()">Assess cycle</button>
+      </div>
+      <div class="empty" style="padding:30px 14px"><b>No read yet</b><p>Synthesizes the pillars, sector breadth, and their trends into a cycle-stage read with per-pillar reasoning \u2014 the "does this all agree" view. Needs a Groq key and at least one Refresh.</p></div>`;
+    return;
+  }
+  const stale=c.builtFrom!==ST.lastSeen;
+  host.innerHTML=`<div class="cycle-hd">
+      <div>
+        <div class="eyebrow" style="margin-bottom:3px">AI Cycle Read${stale?' · data has changed since this read':''}</div>
+        <div class="stage-badge">${esc(c.stage)}<div class="confmeter" data-tip="Model's own stated confidence \u2014 lower when pillar coverage is thin or pillars disagree."><i style="width:${Math.max(4,Math.min(100,c.confidence||0))}%"></i></div><span class="tile-u">${c.confidence??'—'}% confidence</span></div>
+      </div>
+      <button class="btn sm ${stale?'gold':''}" onclick="runCycle()">${stale?'Re-assess':'Refresh read'}</button>
+    </div>
+    <p class="brief" style="margin-bottom:4px">${esc(c.summary||'')}</p>
+    <div class="pillar-chips">${(c.pillars||[]).map(p=>{
+      const cl=READ_CLS[p.read]||'flat';
+      return `<div class="pchip badge ${cl}" data-tip="${esc(p.why||'')}"><b>${esc(p.pillar)}</b>${esc(p.read)}</div>`;
+    }).join('')}</div>
+    <div class="cycle-lists">
+      <div><h4>Key drivers</h4><ul>${(c.drivers||[]).map(d=>`<li>${esc(d)}</li>`).join('')||'<li>—</li>'}</ul></div>
+      <div><h4>Watch for</h4><ul>${(c.watch||[]).map(d=>`<li>${esc(d)}</li>`).join('')||'<li>—</li>'}</ul></div>
+    </div>
+    <div class="note info" style="margin-top:16px">A directional read from the data you've loaded, not an official cycle dating (NBER dates recessions with a lag of months). Treat this as one more input, not the decision itself.</div>
+    <div class="asof" style="margin-top:10px">generated ${new Date(c.asof).toLocaleString()} · ${esc(c.model)}</div>`;
+}
+
+/* ══════════ DETAIL MODAL ══════════ */
+let MODAL_CTX=null;
+function rangeButtons(freq){
+  const opts=RANGE_OPTS[freq]||RANGE_OPTS.M;
+  return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin:15px 0 3px">${opts.map(([k,d])=>
+    `<button class="btn sm range-btn" data-days="${d}" onclick="setRange(${d})">${k}</button>`
+  ).join('')}</div>`;
+}
+function openDetail(kind,id){
+  const freq=kind==='ind'?(CATALOG.find(c=>c.id===id)||{}).freq:'D';
+  MODAL_CTX={kind,id,days:defaultRangeDays(freq)};
+  const box=document.getElementById('modal-box');
+
+  if(kind==='ind'){
+    const cfg=CATALOG.find(c=>c.id===id);
+    const rows=ST.series[id]; const s=stats(rows,cfg); const m=ST.meta[id]||{};
+    if(!rows||!rows.length){
+      box.innerHTML=`<div class="modal-hd"><div><h2>${esc(cfg.nm)}</h2><p>${esc(cfg.tip||'')}</p></div><button class="modal-x" onclick="closeDetail()">✕</button></div>
+        <div class="empty" style="padding:30px"><b>No data yet</b><p>${cfg.src==='manual'?'Import this series on the Import tab — '+esc(cfg.help||''):'Hit Refresh on the Regime tab first.'}</p></div>`;
+      MODAL_CTX=null;
+    }else{
+      box.innerHTML=`<div class="modal-hd"><div><h2>${esc(cfg.nm)}</h2><p>${esc(cfg.tip||'')}</p></div><button class="modal-x" onclick="closeDetail()">✕</button></div>
+        ${rangeButtons(cfg.freq)}
+        <div class="chart-wrap" id="chart-wrap"></div>
+        <div class="chart-legend" id="chart-legend"></div>
+        ${s?`<div class="stat-grid">
+          <div class="stat-cell"><i>Current</i><b>${fmtN(s.cur)} ${esc(cfg.u)}</b></div>
+          <div class="stat-cell" data-tip="${esc(STAT_TIP.pct)}"><i>Percentile</i><b>${s.pct.toFixed(0)}th</b></div>
+          <div class="stat-cell" data-tip="${esc(STAT_TIP.z)}"><i>Z-score</i><b>${s.z.toFixed(2)}</b></div>
+          <div class="stat-cell" data-tip="${esc(STAT_TIP.c3)}"><i>3-period Δ</i><b class="${cls(cfg.invert?-s.c3:s.c3)}">${s.c3==null?'—':sign(s.c3)+fmtN(s.c3)}</b></div>
+          <div class="stat-cell" data-tip="${esc(STAT_TIP.c12)}"><i>12-period Δ</i><b class="${cls(cfg.invert?-s.c12:s.c12)}">${s.c12==null?'—':sign(s.c12)+fmtN(s.c12)}</b></div>
+          <div class="stat-cell" data-tip="${esc(STAT_TIP.accel)}"><i>Accel</i><b class="${cls(cfg.invert?-s.accel:s.accel)}">${s.accel==null?'—':sign(s.accel)+fmtN(s.accel)}</b></div>
+        </div>`:''}
+        <div class="asof" style="margin-top:14px">${rows.length} observations total · as of ${esc(m.asof||rows[0].d)} · ${esc(m.src||cfg.src)}</div>`;
+      renderModalChart();
+    }
+  }else if(kind==='sect'){
+    const d=ST.sectors[id];
+    if(!d||!d.hist||!d.hist.length){
+      box.innerHTML=`<div class="modal-hd"><div><h2>${esc(id)}</h2></div><button class="modal-x" onclick="closeDetail()">✕</button></div>
+        <div class="empty" style="padding:30px"><b>No history yet</b><p>Hit Refresh — sector charts need this build's price history, which older sessions won't have cached.</p></div>`;
+      MODAL_CTX=null;
+    }else{
+      box.innerHTML=`<div class="modal-hd"><div><h2>${esc(id)} <span style="color:var(--ink-low);font-family:var(--body);font-size:15px">${esc(d.name)}</span></h2><p>Price with 50 and 200-day moving averages.</p></div><button class="modal-x" onclick="closeDetail()">✕</button></div>
+        ${rangeButtons('D')}
+        <div class="chart-wrap" id="chart-wrap"></div>
+        <div class="chart-legend" id="chart-legend"></div>
+        <div class="stat-grid">
+          <div class="stat-cell"><i>Last</i><b>${fmtN(d.px,2)}</b></div>
+          <div class="stat-cell" data-tip="Total return over the last ~63 trading days."><i>3M return</i><b class="${cls(d.r63)}">${d.r63==null?'—':sign(d.r63)+d.r63.toFixed(1)+'%'}</b></div>
+          <div class="stat-cell" data-tip="3-month sector return minus 3-month SPY return."><i>RS vs SPY</i><b class="${cls(d.rs)}">${d.rs==null?'—':sign(d.rs)+d.rs.toFixed(1)}</b></div>
+          <div class="stat-cell"><i>vs 50D</i><b class="${cls(d.m50)}">${d.m50==null?'—':sign(d.m50)+d.m50.toFixed(1)+'%'}</b></div>
+          <div class="stat-cell"><i>vs 200D</i><b class="${cls(d.m200)}">${d.m200==null?'—':sign(d.m200)+d.m200.toFixed(1)+'%'}</b></div>
+        </div>
+        <div class="asof" style="margin-top:14px">${d.hist.length} sessions cached · as of ${esc(d.asof)} · FMP</div>`;
+      renderModalChart();
+    }
+  }
+  document.getElementById('modal-ov').classList.add('on');
+}
+function renderModalChart(){
+  if(!MODAL_CTX) return;
+  const {kind,id,days}=MODAL_CTX;
+  let rows,freq,invert;
+  if(kind==='ind'){ const cfg=CATALOG.find(c=>c.id===id); rows=ST.series[id]; freq=cfg.freq; invert=cfg.invert; }
+  else{ const d=ST.sectors[id]; rows=d&&d.hist; freq='D'; invert=false; }
+  const ch=(rows&&rows.length)?lineChart(rows,{freq,invert,rangeDays:days}):{svg:'<div class="empty" style="padding:24px"><p>No data.</p></div>',legend:''};
+  const cw=document.getElementById('chart-wrap'), cl=document.getElementById('chart-legend');
+  if(cw) cw.innerHTML=ch.svg;
+  if(cl) cl.innerHTML=ch.legend;
+  document.querySelectorAll('.range-btn').forEach(b=>b.classList.toggle('on',b.dataset.days===String(days)));
+}
+function setRange(days){ if(!MODAL_CTX) return; MODAL_CTX.days=days; renderModalChart(); }
+function closeDetail(){ document.getElementById('modal-ov').classList.remove('on'); MODAL_CTX=null; }
+
+/* ══════════ PLAN ══════════ */
+const STATUS_LBL={done:'Live now',partial:'Partially built',todo:'Not started'};
+const STATUS_CLS={done:'pos',partial:'warn',todo:'flat'};
+function openPlan(){
+  MODAL_CTX=null;
+  const box=document.getElementById('modal-box');
+  const checks=ST.planChecks||{};
+  const groups=['done','partial','todo'].map(st=>{
+    const items=ROADMAP.filter(r=>r.status===st);
+    if(!items.length) return '';
+    return `<div class="sec-t">${STATUS_LBL[st]}</div>` + items.map(it=>`
+      <div class="plan-item">
+        <label>
+          <input type="checkbox" ${checks[it.id]?'checked':''} onchange="togglePlanCheck('${it.id}',this.checked)">
+          <span>
+            <span class="pt">Phase ${esc(it.phase)} — ${esc(it.title)}</span>
+            <span class="badge ${STATUS_CLS[st]}" style="margin-left:8px">${st}</span>
+            <span class="pn">${esc(it.note)}</span>
+          </span>
+        </label>
+      </div>`).join('');
+  }).join('');
+  box.innerHTML=`
+    <div class="modal-hd">
+      <div><h2>Build Plan</h2><p>${esc(ARCH_DECISION)}</p></div>
+      <button class="modal-x" onclick="closeDetail()">✕</button>
+    </div>
+    <p class="hint" style="margin:6px 0 16px">Status above is maintained directly in this file by Claude each session — it travels with whichever copy either of you has open. The checkboxes are personal: saved only in this browser, and don't sync between collaborators.</p>
+    ${groups}
+    <div class="asof" style="margin-top:16px">IIP Macro · v${APP_VERSION}</div>`;
+  document.getElementById('modal-ov').classList.add('on');
+}
+function togglePlanCheck(id,val){
+  ST.planChecks=ST.planChecks||{};
+  ST.planChecks[id]=val;
+  save();
+}
+
+function renderSpines(){
+  const host=document.getElementById('spines');
+  const any=PILLARS.some(p=>pillarScore(p.id));
+  if(!any){
+    host.innerHTML='<div class="empty"><b>No data yet</b><p>Add your FMP key in Settings and hit Refresh. Anything the API can\u2019t serve — margin debt, credit spreads — comes in through Import.</p></div>';
+    return;
+  }
+  host.innerHTML=PILLARS.map(p=>{
+    const s=pillarScore(p.id);
+    if(!s) return `<div class="spine"><div class="spine-name">${p.name}<small>${p.sub}</small></div>
+      <div class="track"></div><div class="spine-val"><b class="flat">—</b><span>no data</span></div></div>`;
+    const now=Math.max(0,Math.min(100,s.now));
+    const gh=s.prior==null?null:Math.max(0,Math.min(100,s.prior));
+    const dlt=s.prior==null?null:s.now-s.prior;
+    const h=heuristic(s.now);
+    const deciles=Array.from({length:9},(_,i)=>`<span class="decile" style="left:${(i+1)*10}%"></span>`).join('');
+    return `<div class="spine">
+      <div class="spine-name">${p.name}<small>${p.sub}</small><br><span class="badge ${h.cls}" style="margin-top:5px">${h.lbl}</span></div>
+      <div class="track">${deciles}
+        ${gh!=null?`<span class="tick ghost" style="left:${gh}%"></span>`:''}
+        <span class="tick" style="left:${now}%"></span>
+        <span class="tick-lbl" style="left:${now}%">${now.toFixed(0)}</span>
+      </div>
+      <div class="spine-val">
+        <b class="${dlt==null?'flat':cls(dlt)}">${now.toFixed(0)}</b>
+        <span>${dlt==null?`${s.n}/${s.of} series`:`${sign(dlt)}${dlt.toFixed(0)} vs 3M · ${s.n}/${s.of}`}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function snapshotScores(){
+  const o={};
+  for(const p of PILLARS){ const s=pillarScore(p.id); if(s) o[p.id]=s.now; }
+  for(const c of CATALOG){ const s=stats(ST.series[c.id],c); if(s) o['i:'+c.id]=s.cur; }
+  return o;
+}
+function renderChanges(){
+  const host=document.getElementById('changes');
+  const prev=ST.lastSnapshot||{};
+  const cur=snapshotScores();
+  const rows=[];
+  for(const p of PILLARS){
+    if(prev[p.id]==null||cur[p.id]==null) continue;
+    const d=cur[p.id]-prev[p.id];
+    if(Math.abs(d)>=1) rows.push({t:p.name+' pillar',d,txt:`${prev[p.id].toFixed(0)} → ${cur[p.id].toFixed(0)}`,big:true});
+  }
+  for(const c of CATALOG){
+    const a=prev['i:'+c.id], b=cur['i:'+c.id];
+    if(a==null||b==null||a===b) continue;
+    const pctChg=a!==0?Math.abs((b-a)/a*100):0;
+    if(pctChg<0.4) continue;
+    rows.push({t:c.nm,d:c.invert?-(b-a):(b-a),txt:`${fmtN(a)} → ${fmtN(b)} ${c.u}`});
+  }
+  rows.sort((x,y)=>(y.big?1:0)-(x.big?1:0)||Math.abs(y.d)-Math.abs(x.d));
+  document.getElementById('chg-since').textContent=ST.lastSeen?'since '+new Date(ST.lastSeen).toLocaleDateString():'first run';
+  if(!rows.length){
+    host.innerHTML='<div class="empty"><b>Nothing moved</b><p>Differences against your previous session appear here — pillar shifts first, then individual series.</p></div>';
+    return;
+  }
+  host.innerHTML=rows.slice(0,9).map(r=>{
+    const up=r.d>0, col=up?'var(--pos)':'var(--neg)';
+    return `<div class="chg">
+      <div class="chg-i" style="background:${up?'rgba(70,212,149,.14)':'rgba(242,102,92,.14)'};color:${col}">${up?'\u2197':'\u2198'}</div>
+      <div class="chg-b"><b>${esc(r.t)}</b><span>${esc(r.txt)}</span></div>
+    </div>`;
+  }).join('');
+}
+
+function sparkline(vals,invert){
+  if(!vals||vals.length<3) return '';
+  const v=vals.slice(0,120).reverse();
+  const mn=Math.min(...v), mx=Math.max(...v), rg=(mx-mn)||1;
+  const pts=v.map((x,i)=>`${(i/(v.length-1)*100).toFixed(2)},${(26-((x-mn)/rg)*24).toFixed(2)}`).join(' ');
+  const rising=v[v.length-1]>=v[0];
+  const good=invert?!rising:rising;
+  const col=good?'var(--pos)':'var(--neg)';
+  return `<svg class="spark" viewBox="0 0 100 28" preserveAspectRatio="none" aria-hidden="true">
+    <polyline points="${pts}" fill="none" stroke="${col}" stroke-width="1.3" vector-effect="non-scaling-stroke"/>
+  </svg>`;
+}
+
+function renderIndicators(){
+  const host=document.getElementById('ind-body');
+  host.innerHTML=PILLARS.map(p=>{
+    const mem=CATALOG.filter(c=>c.p===p.id);
+    const ps=pillarScore(p.id); const h=heuristic(ps?ps.now:null);
+    const tiles=mem.map(c=>{
+      const s=stats(ST.series[c.id],c);
+      const m=ST.meta[c.id]||{};
+      if(!s){
+        return `<div class="glass card tile">
+          <div class="tile-nm" data-tip="${esc(c.tip||c.nm)}">${esc(c.nm)}</div>
+          <div class="tile-v flat" style="font-size:16px">—</div>
+          <div class="tile-u">${c.src==='manual'?'awaiting import':'unresolved'}</div>
+          ${c.help?`<div class="asof">${esc(c.help)}</div>`:''}
+        </div>`;
+      }
+      const age=m.asof?daysAgo(m.asof):null;
+      const stale=age!=null&&age>(TOL[c.freq]||45);
+      const heat=s.pct>=66?(c.invert?'cold':'hot'):s.pct<=33?(c.invert?'hot':'cold'):'mid';
+      return `<div class="glass card tile clk ${heat}" tabindex="0" role="button" aria-label="Open ${esc(c.nm)} history" onclick="openDetail('ind','${c.id}')" onkeydown="if(event.key==='Enter'||event.key===' '){event.preventDefault();openDetail('ind','${c.id}')}">
+        <span class="expand-ic">⤢</span>
+        <div class="tile-nm" data-tip="${esc(c.tip||c.nm)}">${esc(c.nm)}</div>
+        <div class="tile-v">${fmtN(s.cur)}</div>
+        <div class="tile-u"><span data-tip="${esc(c.u)}">${esc(c.u)}</span> · <span data-tip="${esc(STAT_TIP.pct)}">${s.pct.toFixed(0)}th pctile</span> · <span data-tip="${esc(STAT_TIP.z)}">z ${s.z.toFixed(2)}</span></div>
+        ${sparkline(s.series,c.invert)}
+        <div class="tile-row">
+          <div><i data-tip="${esc(STAT_TIP.c1)}">1p</i><span class="${cls(c.invert?-s.c1:s.c1)}">${s.c1==null?'—':sign(s.c1)+fmtN(s.c1)}</span></div>
+          <div><i data-tip="${esc(STAT_TIP.c3)}">3p</i><span class="${cls(c.invert?-s.c3:s.c3)}">${s.c3==null?'—':sign(s.c3)+fmtN(s.c3)}</span></div>
+          <div><i data-tip="${esc(STAT_TIP.accel)}">accel</i><span class="${cls(c.invert?-s.accel:s.accel)}">${s.accel==null?'—':sign(s.accel)+fmtN(s.accel)}</span></div>
+        </div>
+        <div class="asof ${stale?'stale':''}" ${m.asof?`data-tip="Tolerance for this series is ${TOL[c.freq]||45} days before it's flagged stale (frequency: ${c.freq})."`:''}>${m.asof?`as of ${esc(m.asof)}${stale?` · ${age}d stale`:''}`:'no date'} · ${esc(m.src||c.src)}</div>
+      </div>`;
+    }).join('');
+    return `<div class="sec-t" data-tip="${esc(p.tip)}">${p.name} — ${p.sub}<span class="badge ${h.cls}" style="margin-left:10px">${ps?ps.now.toFixed(0)+' · ':''}${h.lbl}</span></div>${pillarBanner(mem)}<div class="grid g3">${tiles}</div>`;
+  }).join('');
+}
+function pillarBanner(mem){
+  const allManual=mem.every(c=>c.src==='manual');
+  const anyResolved=mem.some(c=>ST.meta[c.id]&&ST.meta[c.id].resolved);
+  if(anyResolved) return '';
+  if(allManual){
+    return `<div class="note warn" style="margin-bottom:13px">Every series in this pillar has to be imported by hand — there\u2019s no CORS-friendly API for margin debt, credit spreads, M2, or SLOOS, so this isn\u2019t a bug, it\u2019s the design. <button class="btn sm gold" style="margin-left:6px" onclick="go('imp')">Go to Import →</button></div>`;
+  }
+  return `<div class="note warn" style="margin-bottom:13px">Nothing here has resolved yet. Add your FMP key in Settings and hit Refresh on the Regime tab — if it still comes back empty after that, check Settings → Endpoint Resolution to see which call failed.</div>`;
+}
+
+function renderBreadth(){
+  const host=document.getElementById('breadth-card'); if(!host) return;
+  const b=sectorBreadth();
+  if(!b){ host.innerHTML='<div class="card-hd"><h3>Breadth</h3></div><p class="hint">Refresh to compute sector breadth.</p>'; return; }
+  const pct=Math.round(b.rsPos/b.total*100);
+  const h=heuristic(pct);
+  host.innerHTML=`<div class="card-hd">
+      <h3 data-tip="Share of the 11 sectors currently outperforming SPY on a 3-month basis. Wide participation (high breadth) tends to mark healthier, more durable advances; narrow breadth is a classic late-cycle warning even while the index itself looks fine.">Breadth</h3>
+      <span class="badge ${h.cls}">${pct}% · ${h.lbl}</span>
+    </div>
+    <div style="display:flex;gap:22px;flex-wrap:wrap;margin-top:6px">
+      <div><div class="num" style="font-size:26px;font-weight:700">${b.rsPos}<span style="color:var(--ink-faint);font-size:15px">/${b.total}</span></div><div class="tile-u">beating SPY (3M)</div></div>
+      <div><div class="num" style="font-size:26px;font-weight:700">${b.above200}<span style="color:var(--ink-faint);font-size:15px">/${b.total}</span></div><div class="tile-u">above 200D MA</div></div>
+      <div><div class="num" style="font-size:26px;font-weight:700">${b.above50}<span style="color:var(--ink-faint);font-size:15px">/${b.total}</span></div><div class="tile-u">above 50D MA</div></div>
+    </div>`;
+}
+
+function renderSectors(){
+  const host=document.getElementById('sect-body');
+  const ks=Object.keys(ST.sectors||{});
+  if(!ks.length){
+    host.innerHTML='<div class="empty"><b>No sector data</b><p>Hit <b style="color:var(--gold-hi)">Refresh sectors</b> above — it pulls the eleven SPDR sector ETFs and computes momentum, relative strength against SPY, and trend against the 50 and 200-day averages.</p></div>';
+    return;
+  }
+  const rows=ks.map(t=>({t,...ST.sectors[t]})).sort((a,b)=>(b.rs??-999)-(a.rs??-999));
+  const mx=Math.max(...rows.map(r=>Math.abs(r.rs??0)))||1;
+  host.innerHTML=`<div style="overflow-x:auto"><table>
+    <thead><tr>
+      <th>Sector</th><th>Last</th>
+      <th data-tip="Total return over the last ~21 trading days.">1M</th>
+      <th data-tip="Total return over the last ~63 trading days.">3M</th>
+      <th data-tip="Total return over the last ~126 trading days.">6M</th>
+      <th data-tip="3-month sector return minus 3-month SPY return. Positive means the sector is beating the broad market, not just rising.">RS vs SPY</th>
+      <th style="min-width:90px" data-tip="Visual scale of relative strength — bar length shows magnitude, direction shows over/under-performance.">·</th>
+      <th data-tip="Percent above (+) or below (\u2212) the 50-day moving average. A common short-term trend filter.">vs 50D</th>
+      <th data-tip="Percent above (+) or below (\u2212) the 200-day moving average. The classic long-term trend filter.">vs 200D</th>
+    </tr></thead>
+    <tbody>${rows.map(r=>{
+      const w=Math.abs(r.rs??0)/mx*50;
+      return `<tr class="clk" tabindex="0" role="button" aria-label="Open ${esc(r.name)} chart" onclick="openDetail('sect','${r.t}')" onkeydown="if(event.key==='Enter'){openDetail('sect','${r.t}')}">
+        <td><span class="tk">${r.t}</span> <span style="color:var(--ink-low);font-size:11.5px">${esc(r.name)}</span></td>
+        <td>${fmtN(r.px,2)}</td>
+        <td class="${cls(r.r21)}">${r.r21==null?'—':sign(r.r21)+r.r21.toFixed(1)+'%'}</td>
+        <td class="${cls(r.r63)}">${r.r63==null?'—':sign(r.r63)+r.r63.toFixed(1)+'%'}</td>
+        <td class="${cls(r.r126)}">${r.r126==null?'—':sign(r.r126)+r.r126.toFixed(1)+'%'}</td>
+        <td class="${cls(r.rs)}">${r.rs==null?'—':sign(r.rs)+r.rs.toFixed(1)}</td>
+        <td><div class="bar"><i style="${(r.rs??0)>=0?`left:50%;width:${w}%;background:var(--pos)`:`right:50%;left:auto;width:${w}%;background:var(--neg)`}"></i></div></td>
+        <td class="${cls(r.m50)}">${r.m50==null?'—':sign(r.m50)+r.m50.toFixed(1)+'%'}</td>
+        <td class="${cls(r.m200)}">${r.m200==null?'—':sign(r.m200)+r.m200.toFixed(1)+'%'}</td>
+      </tr>`;}).join('')}</tbody></table></div>
+    <div class="asof">RS = 3-month excess return vs ${BENCH} · as of ${esc(rows[0].asof||'—')} · click a row for its chart</div>`;
+}
+
+function renderLab(){
+  const sl=document.getElementById('sliders');
+  sl.innerHTML=PILLARS.map(p=>{
+    const s=pillarScore(p.id);
+    return `<div class="fld">
+      <label class="f" style="display:flex;justify-content:space-between;align-items:baseline;text-transform:none;font-size:12.5px;letter-spacing:0" data-tip="${esc(p.tip)}">
+        <span style="font-weight:600;color:var(--ink)">${p.name}<span style="color:var(--ink-faint);font-weight:400"> — its own score: ${s?s.now.toFixed(0):'no data'}</span></span>
+        <span class="num" style="color:var(--gold-hi);font-size:13px">${ST.weights[p.id]}%</span>
+      </label>
+      <input type="range" min="0" max="40" value="${ST.weights[p.id]}" oninput="setW('${p.id}',this.value)">
+    </div>`;
+  }).join('');
+  const tot=Object.values(ST.weights).reduce((a,b)=>a+b,0);
+  const totEl=document.getElementById('lab-tot');
+  if(totEl) totEl.textContent=`weights add up to ${tot}%`;
+
+  const c=composite();
+  const host=document.getElementById('composite');
+  if(c==null){ host.innerHTML='<div class="empty"><b>Nothing to score yet</b><p>Load data on the Regime tab first — this page only combines pillar scores that already exist.</p></div>'; return; }
+  const back=PILLARS.map(p=>{
+    const s=pillarScore(p.id); if(!s||s.prior==null) return null;
+    return {w:ST.weights[p.id],v:s.prior};
+  }).filter(Boolean);
+  const prior=back.length?back.reduce((a,b)=>a+b.v*b.w,0)/back.reduce((a,b)=>a+b.w,0):null;
+  const dlt=prior==null?null:c-prior;
+  const h=heuristic(c);
+  host.innerHTML=`
+    <div style="text-align:center;padding:14px 0 18px">
+      <div class="num" style="font-size:58px;font-weight:700;letter-spacing:-.045em;line-height:1;color:var(--gold-hi)" data-tip="A weighted average of the six pillar scores using the percentages you set on the left. It moves only when you move a slider, or when new data changes a pillar's own score.">${c.toFixed(0)}</div>
+      <div class="tile-u" style="margin-top:7px">0 = weakest backdrop in its own history · 100 = strongest</div>
+      <div style="margin-top:8px"><span class="badge ${h.cls}">${h.lbl}</span></div>
+      ${dlt==null?'':`<div class="num ${cls(dlt)}" style="margin-top:10px;font-size:12.5px">${sign(dlt)}${dlt.toFixed(1)} vs. what this same weighting would have scored 3 months ago</div>`}
+    </div>
+    <div class="track" style="height:30px">
+      ${Array.from({length:9},(_,i)=>`<span class="decile" style="left:${(i+1)*10}%"></span>`).join('')}
+      ${prior==null?'':`<span class="tick ghost" style="left:${Math.max(0,Math.min(100,prior))}%"></span>`}
+      <span class="tick" style="left:${Math.max(0,Math.min(100,c))}%"></span>
+    </div>
+    <div class="note info" style="margin-top:16px">This number only reflects the weights <em style="font-style:normal;color:var(--gold-hi)">you</em> chose above — there's no single correct set of weights. Use it to organize your own view of the six pillars, not as a signal to act on by itself.</div>`;
+}
+function setW(id,v){ ST.weights[id]=+v; save(); renderLab(); }
+function resetWeights(){ ST.weights=structuredClone(DEFAULT.weights); save(); renderLab(); toast('Weights reset to the starting point'); }
+function setEqualWeights(){
+  const each=+((100/PILLARS.length).toFixed(1));
+  ST.weights=Object.fromEntries(PILLARS.map(p=>[p.id,each]));
+  save(); renderLab(); toast('All six pillars weighted equally');
+}
+
+function renderManual(){
+  const man=CATALOG.filter(c=>c.src==='manual');
+  const sel=document.getElementById('imp-series');
+  if(sel&&!sel.dataset.built){
+    sel.innerHTML=man.map(c=>`<option value="${c.id}">${esc(c.nm)} (${c.u})</option>`).join('');
+    sel.dataset.built='1';
+  }
+  const host=document.getElementById('man-status');
+  host.innerHTML=`<table><thead><tr><th>Series</th><th>Obs</th><th>Latest</th><th>As of</th><th>Source</th></tr></thead><tbody>${
+    man.map(c=>{
+      const r=ST.series[c.id]||[]; const age=r.length?daysAgo(r[0].d):null;
+      const stale=age!=null&&age>(TOL[c.freq]||45);
+      return `<tr>
+        <td>${esc(c.nm)}</td>
+        <td>${r.length||'—'}</td>
+        <td>${r.length?fmtN(r[0].v):'—'}</td>
+        <td class="${stale?'down':''}">${r.length?esc(r[0].d)+(stale?` (${age}d)`:''):'—'}</td>
+        <td style="text-align:left;font-family:var(--body);font-size:11px;color:var(--ink-low)">${esc(c.help||'')}</td>
+      </tr>`;
+    }).join('')}</tbody></table>`;
+}
+
+function renderEndpoints(){
+  const host=document.getElementById('ep-status'); if(!host) return;
+  const map={econ:'Economics',curve:'Treasury',quote:'Quotes',hist:'History'};
+  host.innerHTML=Object.keys(map).map(k=>{
+    const v=ST.endpoints[k];
+    const gen=!v?'unresolved':v.includes('stable')?'stable':'legacy';
+    return `<div style="display:flex;justify-content:space-between;padding:7px 0;border-bottom:1px solid rgba(120,160,220,.07)">
+      <span style="font-size:12.5px">${map[k]}</span>
+      <span class="num" style="font-size:11px;color:${v?'var(--pos)':'var(--warn)'}">${gen}</span>
+    </div>`;
+  }).join('')+(ST.endpoints.econ?'':'<div class="note warn" style="margin-top:11px">Economics unresolved — growth, inflation and labor will need CSV import until it answers.</div>');
+}
+function renderModels(){
+  const sel=document.getElementById('m-sel'); if(!sel) return;
+  const list=ST.models.length?ST.models:[ST.model];
+  sel.innerHTML=list.map(m=>`<option value="${esc(m)}"${m===ST.model?' selected':''}>${esc(m)}</option>`).join('');
+  sel.onchange=()=>{ ST.model=sel.value; save(); renderModels(); };
+  const dead=['llama-3.3-70b-versatile','llama-3.1-8b-instant','qwen/qwen3-32b'].filter(x=>list.includes(x));
+  const note=document.getElementById('m-note');
+  if(note) note.innerHTML=
+    (dead.length?`<div class="note warn" style="margin-bottom:9px"><b>Retiring:</b> ${dead.map(esc).join(', ')} — Groq announced these for shutdown by Aug 2026.</div>`:'')
+    +(list.includes('qwen/qwen3.6-27b')?`<div class="note info">qwen/qwen3.6-27b sits on Groq\u2019s <b>Preview</b> tier — no deprecation guarantee, and 4–5\u00d7 the token cost of gpt-oss-120b. Reserve it for vision.</div>`:'');
+}
+function renderFoot(){
+  document.getElementById('ver').textContent=APP_VERSION;
+  document.getElementById('schema').textContent=SCHEMA;
+  const kb=(bytes()/1024).toFixed(0);
+  document.getElementById('foot-r').textContent=`${kb} KB stored · ${ST.lastSeen?'last refresh '+new Date(ST.lastSeen).toLocaleString():'never refreshed'}`;
+  const sn=document.getElementById('store-note');
+  if(sn) sn.innerHTML=`<div class="note ${kb>2000?'warn':'info'}">Using <b>${kb} KB</b> of the ~5 MB localStorage ceiling. Past ~2 MB this should move to Dexie — flag it and I\u2019ll migrate the schema rather than let it fail silently.</div>`;
+}
+
+/* ══════════ IMPORT ══════════ */
+function parseCSV(txt){
+  const out=[];
+  for(const line of String(txt).split(/\r?\n/)){
+    const s=line.trim(); if(!s) continue;
+    const parts=s.split(/[,\t;]/).map(x=>x.trim().replace(/^["']|["']$/g,''));
+    if(parts.length===1){
+      const v=+parts[0].replace(/[$,%\s]/g,'');
+      if(Number.isFinite(v)) out.push({d:new Date().toISOString().slice(0,10),v});
+      continue;
+    }
+    const [a,b]=parts;
+    const v=+String(b).replace(/[$,%\s]/g,'');
+    if(!Number.isFinite(v)) continue;                 // skips header rows naturally
+    const t=Date.parse(a);
+    if(!Number.isFinite(t)) continue;
+    out.push({d:new Date(t).toISOString().slice(0,10),v});
+  }
+  out.sort((x,y)=>y.d.localeCompare(x.d));
+  return out;
+}
+function ingest(id,rows,label){
+  if(!rows.length){ toast('No usable rows found — expected date,value'); return; }
+  const cfg=CATALOG.find(c=>c.id===id);
+  const merged=[...rows,...(ST.series[id]||[])];
+  const seen=new Set(); const dedup=[];
+  for(const r of merged){ if(seen.has(r.d)) continue; seen.add(r.d); dedup.push(r); }
+  dedup.sort((a,b)=>b.d.localeCompare(a.d));
+  ST.series[id]=dedup;
+  ST.meta[id]={asof:dedup[0].d,src:label||'manual import',resolved:true};
+  save(); renderAll();
+  toast(`${cfg?cfg.nm:id}: ${rows.length} rows · latest ${dedup[0].d}`);
+}
+function importPaste(){
+  const id=document.getElementById('imp-series').value;
+  const txt=document.getElementById('paste').value;
+  if(!txt.trim()){ toast('Nothing to import'); return; }
+  ingest(id,parseCSV(txt),'pasted');
+  document.getElementById('paste').value='';
+}
+function handleFile(f){
+  if(!f) return;
+  const rd=new FileReader();
+  rd.onload=()=>ingest(document.getElementById('imp-series').value,parseCSV(rd.result),'csv: '+f.name);
+  rd.onerror=()=>toast('Could not read that file');
+  rd.readAsText(f);
+}
+
+/* ══════════ EXPORT / RESET ══════════ */
+function dl(name,content,type){
+  const b=new Blob([content],{type:type||'application/json'});
+  const u=URL.createObjectURL(b), a=document.createElement('a');
+  a.href=u; a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(u),1500);
+}
+function exportAll(){
+  const c=structuredClone(ST); c.keys={fmp:'',ai:''};   // never export secrets
+  dl(`iip_macro_snapshot_${new Date().toISOString().slice(0,10)}.json`,JSON.stringify({v:APP_VERSION,schema:SCHEMA,data:c},null,2));
+  toast('Snapshot exported (keys excluded)');
+}
+function importSnapshot(f){
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const j=JSON.parse(rd.result);
+      const d=j.data||j;
+      const keys=ST.keys;                              // keep the keys already in this browser
+      ST=Object.assign(structuredClone(DEFAULT),d); ST.keys=keys;
+      save(); renderAll(); toast('Snapshot imported');
+    }catch(e){ toast('Not a valid snapshot file'); }
+  };
+  rd.readAsText(f);
+}
+function wipe(){
+  if(!confirm('Erase all stored series, weights and keys in this browser?')) return;
+  localStorage.removeItem(SCHEMA); ST=structuredClone(DEFAULT); save();
+  document.getElementById('k-fmp').value=''; document.getElementById('k-ai').value='';
+  renderAll(); toast('All data cleared');
+}
+
+/* ══════════ PWA ══════════ */
+const SW_SRC=`/* IIP Macro — app-shell cache only.
+   API responses are NEVER cached: a stale macro reading that looks live is
+   worse than no reading at all. */
+const CACHE='iip-macro-v${APP_VERSION}';
+const SHELL=['./','./index.html'];
+self.addEventListener('install',e=>{
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL).catch(()=>{})));
+});
+self.addEventListener('activate',e=>{
+  e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+});
+self.addEventListener('fetch',e=>{
+  const u=new URL(e.request.url);
+  // never intercept data providers
+  if(/financialmodelingprep\\.com|api\\.groq\\.com/.test(u.hostname)) return;
+  if(e.request.method!=='GET') return;
+  if(u.origin!==self.location.origin) return;
+  e.respondWith(
+    fetch(e.request).then(r=>{
+      const cp=r.clone();
+      caches.open(CACHE).then(c=>c.put(e.request,cp)).catch(()=>{});
+      return r;
+    }).catch(()=>caches.match(e.request))
+  );
+});`;
+function downloadSW(){ dl('sw.js',SW_SRC,'text/javascript'); toast('sw.js downloaded — drop it beside index.html'); }
+
+function installManifest(){
+  const m={name:'IIP Macro Intelligence',short_name:'IIP Macro',start_url:'./',display:'standalone',
+    background_color:'#070d1a',theme_color:'#070d1a',description:'Macro regime dashboard',
+    icons:[{src:'data:image/svg+xml,'+encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="104" fill="#070d1a"/><rect x="74" y="238" width="364" height="36" rx="10" fill="#12233d"/><rect x="316" y="216" width="16" height="80" rx="7" fill="#d4a949"/><rect x="182" y="226" width="10" height="60" rx="5" fill="#5a6f92"/><text x="256" y="404" font-family="Georgia,serif" font-size="112" font-weight="700" fill="#3fd0c9" text-anchor="middle">IIP</text></svg>`
+    ),sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
+  const l=document.createElement('link');
+  l.rel='manifest';
+  l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
+  document.head.appendChild(l);
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    navigator.serviceWorker.register('./sw.js').catch(()=>{ /* not deployed yet — fine */ });
+  }
+}
+
+/* ══════════ NAV & BOOT ══════════ */
+function go(v,el){
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',el?t===el:t.dataset.v===v));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+function saveKeys(){
+  ST.keys.fmp=document.getElementById('k-fmp').value.trim();
+  ST.keys.ai=document.getElementById('k-ai').value.trim();
+  save();
+  dot('d-fmp',ST.keys.fmp?'warn':'');
+  dot('d-ai',ST.keys.ai?'warn':'');
+  toast('Keys saved to this browser only');
+  if(ST.keys.ai) loadModels();
+  if(ST.keys.fmp) probeEndpoints();
+}
+
+function boot(){
+  load();
+  document.getElementById('k-fmp').value=ST.keys.fmp||'';
+  document.getElementById('k-ai').value=ST.keys.ai||'';
+  dot('d-fmp',ST.keys.fmp?(Object.values(ST.endpoints).some(Boolean)?'ok':'warn'):'');
+  dot('d-ai',ST.keys.ai?'warn':'');
+  renderAll();
+  if(ST.lastValTicker && ST.companies[ST.lastValTicker]){
+    document.getElementById('val-ticker').value=ST.lastValTicker;
+    renderValuation(ST.lastValTicker);
+  }
+  if(ST.brief) document.getElementById('brief').innerHTML=
+    ST.brief.split(/\n{2,}/).map(p=>'<p>'+esc(p).replace(/\*\*(.+?)\*\*/g,'<strong>$1</strong>')+'</p>').join('');
+
+  const dz=document.getElementById('drop');
+  ['dragenter','dragover'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.add('over');}));
+  ['dragleave','drop'].forEach(ev=>dz.addEventListener(ev,e=>{e.preventDefault();dz.classList.remove('over');}));
+  dz.addEventListener('drop',e=>handleFile(e.dataTransfer.files[0]));
+  document.getElementById('file').addEventListener('change',e=>handleFile(e.target.files[0]));
+  document.getElementById('imp-json').addEventListener('change',e=>{ if(e.target.files[0]) importSnapshot(e.target.files[0]); });
+  document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDetail(); });
+
+  installManifest();
+  if(ST.keys.ai&&!ST.models.length) loadModels();
+  if(!ST.keys.fmp) go('set');
+}
+document.addEventListener('DOMContentLoaded',boot);
+</script>
+</body>
+</html>
