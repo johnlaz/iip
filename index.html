@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>(function(){try{var r=localStorage.getItem('iip_v1');var t=r?JSON.parse(r).theme:null;var mode=(t&&t.mode)||'system';if(mode==='system')mode=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';document.documentElement.dataset.mode=mode;document.documentElement.dataset.accent=(t&&t.accent)||'classic';}catch(e){}})();</script>
 <meta name="theme-color" content="#070d1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -351,6 +352,73 @@ tr.clk:hover td:first-child{color:var(--teal-hi)}
 .launch-stat i{color:var(--ink-low);font-style:normal}
 .launch-stat b{font-family:var(--mono)}
 .launch-arrow{margin-top:14px;font-family:var(--mono);font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--gold-hi)}
+
+/* ══════════ THEMING ══════════
+   Two independent axes: mode (dark/light) and accent (4 palettes).
+   pos/neg/warn (gain/loss/caution) stay FIXED across every combination —
+   those carry meaning and shouldn't shift with a color preference.
+   Applied via data-attributes on <html>, read from shared ST.theme so the
+   preference is consistent across all four apps, same as API keys. */
+html[data-mode="light"]{
+  --void:#f3f5fa; --deep:#e7ebf4;
+  --panel:rgba(255,255,255,.72); --panel-hi:rgba(255,255,255,.88);
+  --edge:rgba(30,50,90,.12); --edge-hi:rgba(30,50,90,.24);
+  --ink:#131b2c; --ink-mid:#3f4d68; --ink-low:#6c7996; --ink-faint:#a3aec2;
+}
+html[data-mode="light"] body::before{
+  background:
+    radial-gradient(900px 620px at 12% -8%, rgba(63,208,201,.07), transparent 62%),
+    radial-gradient(760px 560px at 92% 4%, rgba(212,169,73,.08), transparent 60%),
+    radial-gradient(1100px 800px at 50% 108%, rgba(40,80,150,.05), transparent 68%);
+}
+html[data-mode="light"] .plan-fab{ background:rgba(255,255,255,.85); }
+
+html[data-accent="emerald"]{
+  --gold:#2ba97d; --gold-hi:#5fd6a8; --gold-dim:rgba(43,169,125,.13);
+  --teal:#8b7fd6; --teal-hi:#b8aef0; --teal-dim:rgba(139,127,214,.12);
+}
+html[data-accent="rose"]{
+  --gold:#d6607e; --gold-hi:#f0a3b8; --gold-dim:rgba(214,96,126,.13);
+  --teal:#4fc3d9; --teal-hi:#8fe0ef; --teal-dim:rgba(79,195,217,.12);
+}
+html[data-accent="amber"]{
+  --gold:#d68a3c; --gold-hi:#f0b56e; --gold-dim:rgba(214,138,60,.13);
+  --teal:#6b93d6; --teal-hi:#a3c1ef; --teal-dim:rgba(107,147,214,.12);
+}
+/* Light mode needs its own accent values — the dark "hi" tones are too pale
+   to read on a white background, so this isn't just reusing the pairs above. */
+html[data-mode="light"][data-accent="classic"]{
+  --gold:#a5761f; --gold-hi:#8a5f14; --gold-dim:rgba(165,118,31,.10);
+  --teal:#1f9088; --teal-hi:#146b64; --teal-dim:rgba(31,144,136,.09);
+}
+html[data-mode="light"][data-accent="emerald"]{
+  --gold:#1f8f66; --gold-hi:#14704f; --gold-dim:rgba(31,143,102,.10);
+  --teal:#6a5cc4; --teal-hi:#52459e; --teal-dim:rgba(106,92,196,.09);
+}
+html[data-mode="light"][data-accent="rose"]{
+  --gold:#b8456a; --gold-hi:#93304f; --gold-dim:rgba(184,69,106,.10);
+  --teal:#2a94ab; --teal-hi:#1c7386; --teal-dim:rgba(42,148,171,.09);
+}
+html[data-mode="light"][data-accent="amber"]{
+  --gold:#b06a1f; --gold-hi:#8c5314; --gold-dim:rgba(176,106,31,.10);
+  --teal:#4c74c4; --teal-hi:#3a5a9e; --teal-dim:rgba(76,116,196,.09);
+}
+
+.appear-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.mode-btn{font-family:var(--mono);font-size:11px;padding:7px 13px;border-radius:8px;
+  border:1px solid var(--edge);background:transparent;color:var(--ink-mid);cursor:pointer;transition:.15s}
+.mode-btn.on{border-color:var(--gold);color:var(--gold-hi);background:var(--gold-dim)}
+.swatch-row{display:flex;gap:10px}
+.swatch{width:34px;height:34px;border-radius:50%;cursor:pointer;border:2px solid transparent;
+  transition:.15s;position:relative}
+.swatch.on{border-color:var(--ink)}
+.swatch.on::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:14px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.swatch[data-a="classic"]{background:linear-gradient(135deg,#d4a949,#3fd0c9)}
+.swatch[data-a="emerald"]{background:linear-gradient(135deg,#2ba97d,#8b7fd6)}
+.swatch[data-a="rose"]{background:linear-gradient(135deg,#d6607e,#4fc3d9)}
+.swatch[data-a="amber"]{background:linear-gradient(135deg,#d68a3c,#6b93d6)}
+
 </style>
 </head>
 <body>
@@ -384,6 +452,13 @@ tr.clk:hover td:first-child{color:var(--teal-hi)}
     <div class="launch-arrow">Open →</div>
   </a>
 </div>
+
+<div class="glass card" style="margin-top:22px">
+  <div class="card-hd"><h3>Appearance</h3></div>
+  <div id="appearance-body"></div>
+</div>
+
+<div class="glass card" style="margin-top:22px" id="reports-card"></div>
 
 <div class="glass card" style="margin-top:22px" id="plan-card"></div>
 
@@ -460,8 +535,8 @@ const ROADMAP=[
     note:'Historical validation of the regime, sector, and valuation signals across multiple cycles. Not started.'},
   {id:'monitoring', phase:'8', title:'Monitoring & Alerts', status:'done',
     note:'Lives in Research: a watchlist (union with Portfolio holdings defines the monitored set) plus per-ticker earnings and dividend dates — next earnings date, last quarter’s surprise, next ex-div, dividend trend, and a margin-of-safety flag pulled straight from Valuation’s cache. NOT built: automated push/email alerts (this is pull-to-refresh, no background execution) or macro/portfolio-level alert triggers from the original plan’s fuller scope — earnings/dividends only.'},
-  {id:'ai-analyst', phase:'9', title:'AI Analyst — company level', status:'todo',
-    note:'Macro-level AI (Brief, Cycle Read) is done. Earnings transcript/release analysis and thesis-change tracking at the company level is not.'},
+  {id:'ai-analyst', phase:'9', title:'AI Analyst — company level', status:'done',
+    note:'Lives on Valuation: pulls the most recent earnings call transcript (two-step fetch — FMP has no "latest" shortcut, so dates are fetched first, then that specific transcript) and sends it to Groq for a structured read — guidance, key risks, tone, notable quotes, bottom line. Truncated at 18,000 characters before sending, flagged in the UI when that happens. Cached per ticker so revisiting a name doesn’t re-spend the Groq call. Labeled as AI synthesis throughout, same as the macro Cycle Read — never a silent input to the DCF/Graham/multiples numbers. NOT built: thesis-change tracking over time (this reads one call, it doesn’t compare across calls yet).'},
   {id:'journal', phase:'extra', title:'Investment Journal', status:'done',
     note:'Lives inside the Portfolio tab rather than as its own — date, optional ticker, tag (Thesis/Buy/Sell/Watch/Note), title, freeform body. Filterable by ticker. Deliberately simple: no linking beyond the ticker tag, no structured thesis-tracking against outcomes — just something worth actually rereading later.'},
   {id:'marketval', phase:'extra', title:'Market Valuation Layer', status:'done',
@@ -479,9 +554,69 @@ function togglePlanCheck(id,val){
   ST.planChecks[id]=val;
   save();
 }
+let PLAN_OPEN=false;
+function togglePlanOpen(){ PLAN_OPEN=!PLAN_OPEN; renderPlan(); }
+let REPORT_OPEN=null;
+function toggleReportOpen(id){ REPORT_OPEN=(REPORT_OPEN===id)?null:id; renderReports(); }
+function deleteReport(id){
+  ST.reports=(ST.reports||[]).filter(r=>r.id!==id);
+  save(); renderReports();
+}
+function downloadReport(id){
+  const r=(ST.reports||[]).find(x=>x.id===id); if(!r) return;
+  const blob=new Blob([JSON.stringify(r,null,2)],{type:'application/json'});
+  const url=URL.createObjectURL(blob);
+  const a=document.createElement('a'); a.href=url; a.download=`${r.symbol}_report_${r.createdAt.slice(0,10)}.json`;
+  document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
+}
+function fmtMoney(n){ return n==null||!Number.isFinite(n)?'—':'$'+n.toFixed(2); }
+function renderReports(){
+  const host=document.getElementById('reports-card');
+  const reports=ST.reports||[];
+  if(!reports.length){
+    host.innerHTML=`<div class="card-hd"><h3>Reports</h3></div>
+      <p class="hint">No saved reports yet — use <b style="color:var(--gold-hi)">Save Report</b> on any Valuation in Research to freeze a point-in-time snapshot here.</p>`;
+    return;
+  }
+  const rows=reports.map(r=>{
+    const open=REPORT_OPEN===r.id;
+    const s=r.snapshot||{};
+    const mosCls=s.mos==null?'flat':s.mos>=15?'pos':s.mos<=-15?'neg':'warn';
+    const detail=open?`
+      <div style="padding:12px 0 4px">
+        <div class="stat-grid" style="margin-top:0">
+          <div class="stat-cell"><i>Price at save</i><b class="num">${fmtMoney(s.price)}</b></div>
+          <div class="stat-cell"><i>Fair value (base)</i><b class="num">${fmtMoney(s.range&&s.range.base)}</b></div>
+          <div class="stat-cell"><i>Margin of safety</i><b class="num ${mosCls}">${s.mos==null?'—':(s.mos>=0?'+':'')+s.mos.toFixed(0)+'%'}</b></div>
+          <div class="stat-cell"><i>DCF</i><b class="num">${fmtMoney(s.methods&&s.methods.dcf)}</b></div>
+          <div class="stat-cell"><i>Graham</i><b class="num">${fmtMoney(s.methods&&s.methods.graham)}</b></div>
+          <div class="stat-cell"><i>Hist. P/E</i><b class="num">${fmtMoney(s.methods&&s.methods.mult)}</b></div>
+          <div class="stat-cell"><i>Quality</i><b class="num">${s.quality==null?'—':s.quality.toFixed(0)}</b></div>
+          <div class="stat-cell"><i>Certainty</i><b class="num">${s.certainty==null?'—':s.certainty.toFixed(0)}</b></div>
+        </div>
+        ${s.callAnalysis?`<div class="hint" style="margin-top:12px;white-space:pre-wrap;line-height:1.6">${esc(s.callAnalysis.analysis).slice(0,600)}${s.callAnalysis.analysis.length>600?'…':''}</div>`:''}
+        <div class="asof" style="margin-top:10px">Underlying data as of ${esc(s.dataAsOf?new Date(s.dataAsOf).toLocaleDateString():'—')}</div>
+      </div>`:'';
+    return `<div class="plan-item">
+      <div style="display:flex;justify-content:space-between;align-items:center;gap:10px;cursor:pointer" onclick="toggleReportOpen('${r.id}')">
+        <div><span class="tk">${esc(r.symbol)}</span> <span class="pt" style="margin-left:8px">${esc(r.name)}</span></div>
+        <div style="display:flex;gap:6px;align-items:center;flex:none">
+          <span style="color:var(--ink-low);font-size:11px">${esc(new Date(r.createdAt).toLocaleDateString())}</span>
+          <button class="btn sm" style="padding:2px 8px;font-size:10px" onclick="event.stopPropagation();downloadReport('${r.id}')" data-tip="Download as JSON">⬇</button>
+          <button class="btn sm" style="padding:2px 8px;font-size:10px" onclick="event.stopPropagation();deleteReport('${r.id}')" data-tip="Delete this report">✕</button>
+        </div>
+      </div>
+      ${detail}
+    </div>`;
+  }).join('');
+  host.innerHTML=`<div class="card-hd"><h3>Reports</h3><span class="k">${reports.length} saved</span></div>${rows}`;
+}
+
 function renderPlan(){
   const host=document.getElementById('plan-card');
   const checks=ST.planChecks||{};
+  const counts={done:0,partial:0,todo:0};
+  ROADMAP.forEach(r=>counts[r.status]++);
   const groups=['done','partial','todo'].map(st=>{
     const items=ROADMAP.filter(r=>r.status===st);
     if(!items.length) return '';
@@ -497,11 +632,63 @@ function renderPlan(){
         </label>
       </div>`).join('');
   }).join('');
-  host.innerHTML = `<div class="card-hd"><h3>Build Plan</h3></div>
+  if(!PLAN_OPEN){
+    host.innerHTML = `<div class="card-hd" style="cursor:pointer" onclick="togglePlanOpen()">
+        <h3>Build Plan <span style="color:var(--ink-low);font-weight:400;font-size:12px">— ${counts.done} live · ${counts.partial} partial · ${counts.todo} not started</span></h3>
+        <button class="btn sm" onclick="event.stopPropagation();togglePlanOpen()">Expand ▾</button>
+      </div>`;
+    return;
+  }
+  host.innerHTML = `<div class="card-hd" style="cursor:pointer" onclick="togglePlanOpen()">
+      <h3>Build Plan</h3>
+      <button class="btn sm" onclick="event.stopPropagation();togglePlanOpen()">Collapse ▴</button>
+    </div>
     <p class="hint" style="margin-bottom:14px">${esc(ARCH_DECISION)}</p>
     <p class="hint" style="margin-bottom:6px">Status is maintained directly in this file by Claude each session — it travels with whichever copy either of you has open. The checkboxes are personal: saved only in this browser, and don\'t sync between collaborators.</p>
     ${groups}`;
 }
+function resolveMode(mode){
+  if(mode==='light'||mode==='dark') return mode;
+  return (window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+}
+function applyTheme(){
+  ST.theme=ST.theme||{mode:'system',accent:'classic'};
+  document.documentElement.dataset.mode=resolveMode(ST.theme.mode);
+  document.documentElement.dataset.accent=ST.theme.accent||'classic';
+}
+function setThemeMode(mode){
+  ST.theme=ST.theme||{mode:'system',accent:'classic'};
+  ST.theme.mode=mode;
+  save(); applyTheme(); renderAppearance();
+}
+function setThemeAccent(accent){
+  ST.theme=ST.theme||{mode:'system',accent:'classic'};
+  ST.theme.accent=accent;
+  save(); applyTheme(); renderAppearance();
+}
+function renderAppearance(){
+  const host=document.getElementById('appearance-body');
+  if(!host) return;
+  const t=ST.theme||{mode:'system',accent:'classic'};
+  const modes=[['system','Follow system'],['light','Light'],['dark','Dark']];
+  const accents=['classic','emerald','rose','amber'];
+  host.innerHTML=`
+    <div class="appear-row">${modes.map(([m,l])=>
+      `<button class="mode-btn ${t.mode===m?'on':''}" onclick="setThemeMode('${m}')">${esc(l)}</button>`).join('')}</div>
+    <div class="swatch-row">${accents.map(a=>
+      `<div class="swatch ${t.accent===a?'on':''}" data-a="${a}" onclick="setThemeAccent('${a}')" data-tip="${esc(a[0].toUpperCase()+a.slice(1))}"></div>`).join('')}</div>
+    <p class="hint" style="margin-top:12px">Applies everywhere — same preference shared across Macro, Research, and Portfolio.</p>`;
+}
+function initThemeWatcher(){
+  if(window.matchMedia){
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=>{
+      if((ST.theme&&ST.theme.mode)==='system') applyTheme();
+    });
+  }
+}
+
+applyTheme(); initThemeWatcher(); renderAppearance();
+renderReports();
 renderPlan();
 </script>
 </body>
