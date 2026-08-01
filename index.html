@@ -657,8 +657,12 @@ let PENDING_AI_QUERY='';
 async function aiSearchFallback(){
   const query=PENDING_AI_QUERY;
   const host=document.getElementById('search-results');
+  // Home loads ST once at boot and never re-reads it — if the key was added
+  // in another tab (Macro/Research/Portfolio) after this tab was opened,
+  // this in-memory ST would still be the stale boot-time copy without this.
+  try{ const raw=localStorage.getItem(SCHEMA); if(raw) Object.assign(ST,JSON.parse(raw)); }catch(e){}
   if(!ST.keys||!ST.keys.ai){
-    host.innerHTML='<div class="search-hit" style="cursor:default"><span class="sh-desc">No Groq key set yet \u2014 add one in Settings on any of the three apps (Macro, Research, or Portfolio), it\u2019s shared here automatically.</span></div>';
+    host.innerHTML='<div class="search-hit" style="cursor:default"><span class="sh-lbl" style="color:var(--gold-hi)">No Groq key found</span><span class="sh-desc">Add one in Settings on Macro, Research, or Portfolio \u2014 it\u2019s shared here automatically once set. If you already added one, try reloading this Home tab.</span></div>';
     return;
   }
   host.innerHTML='<div class="search-hit" style="cursor:default"><span class="sh-desc"><span class="spin" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:6px"></span>Asking AI\u2026</span></div>';
