@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <script>(function(){try{var r=localStorage.getItem('iip_v1');var t=r?JSON.parse(r).theme:null;var mode=(t&&t.mode)||'system';if(mode==='system')mode=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';document.documentElement.dataset.mode=mode;document.documentElement.dataset.accent=(t&&t.accent)||'classic';}catch(e){}})();</script>
 <meta name="theme-color" content="#070d1a">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="manifest" href="./manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>IIP · Investment Intelligence Platform</title>
@@ -469,6 +472,8 @@ html[data-mode="light"][data-accent="amber"]{
   <div class="search-results" id="search-results" style="display:none"></div>
 </div>
 
+<div id="install-banner-slot" style="margin-top:13px"></div>
+
 <div class="info-modal-ov" id="info-modal-ov" onclick="if(event.target===this)closeInfo()">
   <div class="info-modal-box">
     <div class="info-modal-hd">
@@ -701,6 +706,76 @@ const STATUS_CLS={done:'pos',partial:'warn',todo:'flat'};
 function save(){
   try{ localStorage.setItem(SCHEMA,JSON.stringify(ST)); }catch(e){}
 }
+/* ══════════ INSTALL BANNER ══════════
+   Chrome/Edge/Android fire beforeinstallprompt when PWA criteria are met
+   (manifest + service worker + https); iOS Safari never fires it at all —
+   there's no API for that, so iOS gets a manual "how to" instead. Dismissal
+   is remembered in shared state so it doesn't nag across all four apps
+   independently. */
+let deferredInstallPrompt=null;
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+}
+function isIOS(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  showInstallBanner();
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  ST.pwaInstallDismissed=true; save();
+  const b=document.getElementById('install-banner'); if(b) b.remove();
+});
+function showInstallBanner(){
+  const host=document.getElementById('install-banner-slot');
+  if(!host||isStandalone()||ST.pwaInstallDismissed) return;
+  host.innerHTML=`<div class="note info" id="install-banner" style="border-radius:var(--r);margin-bottom:13px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+    <span>Install IIP as an app — quick access from your home screen, app-shell loads instantly even offline.</span>
+    <span style="display:flex;gap:8px;flex:none">
+      <button class="btn sm gold" onclick="triggerInstall()">Install</button>
+      <button class="btn sm" onclick="dismissInstallBanner()">Not now</button>
+    </span>
+  </div>`;
+}
+function showIOSInstallBanner(){
+  const host=document.getElementById('install-banner-slot');
+  if(!host||isStandalone()||ST.pwaInstallDismissed) return;
+  host.innerHTML=`<div class="note info" id="install-banner" style="border-radius:var(--r);margin-bottom:13px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+    <span>Install IIP: tap the Share icon, then <b>Add to Home Screen</b>. iOS doesn't allow an automatic install prompt.</span>
+    <button class="btn sm" onclick="dismissInstallBanner()">Got it</button>
+  </div>`;
+}
+async function triggerInstall(){
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null;
+  const b=document.getElementById('install-banner'); if(b) b.remove();
+}
+function dismissInstallBanner(){
+  ST.pwaInstallDismissed=true; save();
+  const b=document.getElementById('install-banner'); if(b) b.remove();
+}
+function initInstallBanner(){
+  if(isStandalone()) return;
+  if(isIOS()) showIOSInstallBanner();
+  // Chromium browsers: beforeinstallprompt fires later, asynchronously —
+  // showInstallBanner() runs from that listener above, not from here.
+}
+
+function installManifest(){
+  // Manifest and icons are static files linked in <head>; this registers
+  // the shared service worker. Home is the manifest's start_url, so this
+  // is where the "Add to Home Screen" / install prompt actually originates.
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    navigator.serviceWorker.register('./sw.js').catch(()=>{ /* sw.js not deployed alongside this file yet — fine */ });
+  }
+}
+installManifest();
+initInstallBanner();
 function togglePlanCheck(id,val){
   ST.planChecks=ST.planChecks||{};
   ST.planChecks[id]=val;

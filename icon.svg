@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0F172A" />
+      <stop offset="100%" stop-color="#1E293B" />
+    </linearGradient>
+    <linearGradient id="accentGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#818CF8" />
+    </linearGradient>
+  </defs>
+  <!-- Base Tile -->
+  <rect width="512" height="512" rx="112" fill="url(#bgGrad)" />
+  <!-- Glowing Border/Accent -->
+  <rect x="16" y="16" width="480" height="480" rx="96" fill="none" stroke="url(#accentGrad)" stroke-width="4" opacity="0.3" />
+  <!-- Symbol/Monogram -->
+  <path d="M 140 160 L 140 352 M 220 160 L 220 352 M 300 160 L 370 160 C 410 160 410 240 370 240 L 300 240 L 300 352" 
+        fill="none" stroke="url(#accentGrad)" stroke-width="36" stroke-linecap="round" stroke-linejoin="round" />
+  <circle cx="140" cy="160" r="18" fill="#38BDF8" />
+  <circle cx="220" cy="160" r="18" fill="#38BDF8" />
+</svg>

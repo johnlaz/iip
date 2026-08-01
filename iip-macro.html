@@ -5,6 +5,9 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <script>(function(){try{var r=localStorage.getItem('iip_v1');var t=r?JSON.parse(r).theme:null;var mode=(t&&t.mode)||'system';if(mode==='system')mode=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';document.documentElement.dataset.mode=mode;document.documentElement.dataset.accent=(t&&t.accent)||'classic';}catch(e){}})();</script>
 <meta name="theme-color" content="#070d1a">
+<link rel="icon" href="./icon.svg" type="image/svg+xml">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="manifest" href="./manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <title>IIP · Macro Intelligence</title>
@@ -416,7 +419,8 @@ html[data-mode="light"][data-accent="amber"]{
 </head>
 <body>
 <div class="wrap">
-<div class="app-switch"><a href="./iip-home.html">Home</a><span class="sep">·</span><span class="cur">Macro</span><span class="sep">·</span><a href="./iip-research.html">Research</a><span class="sep">·</span><a href="./iip-portfolio.html">Portfolio</a></div>
+<div class="app-switch"><a href="./index.html">Home</a><span class="sep">·</span><span class="cur">Macro</span><span class="sep">·</span><a href="./iip-research.html">Research</a><span class="sep">·</span><a href="./iip-portfolio.html">Portfolio</a></div>
+<div id="install-banner-slot"></div>
 <header>
   <div class="brand">
     <div class="eyebrow">LAZLAB Creations · Platform 01</div>
@@ -601,18 +605,17 @@ html[data-mode="light"][data-accent="amber"]{
   </div>
   <div class="sec-t">About</div>
   <div class="glass card" style="margin-bottom:14px">
-    <p class="hint" style="margin:0 0 10px">Full build plan, what's live vs. not started, and the architecture notes now live on the <a href="./iip-home.html" style="color:var(--gold-hi)">Home</a> launcher — one place to check status across all three apps.</p>
+    <p class="hint" style="margin:0 0 10px">Full build plan, what's live vs. not started, and the architecture notes now live on the <a href="./index.html" style="color:var(--gold-hi)">Home</a> launcher — one place to check status across all three apps.</p>
   </div>
   <div class="sec-t">Data &amp; PWA</div>
   <div class="glass card">
     <div style="display:flex;gap:9px;flex-wrap:wrap">
       <button class="btn sm" onclick="exportAll()" data-tip="Downloads all series, weights and settings as JSON. API keys are deliberately excluded from the file.">Export snapshot</button>
       <button class="btn sm" onclick="document.getElementById('imp-json').click()" data-tip="Restores series, weights and settings from a previously exported snapshot. Keys already saved in this browser are kept.">Import snapshot</button>
-      <button class="btn sm" onclick="downloadSW()" data-tip="Generates the service worker file. Browsers require this as a separate same-origin file — it can't be inlined into a single HTML page.">Download sw.js</button>
       <button class="btn sm" onclick="wipe()" data-tip="Permanently clears everything stored in this browser: series, weights, keys. Cannot be undone \u2014 export first if unsure.">Reset all data</button>
     </div>
     <input type="file" id="imp-json" accept=".json" hidden>
-    <p class="hint" style="margin-top:12px">A service worker cannot be inlined into a single file — browsers require a same-origin script URL. <b>Download sw.js</b> generates one to drop beside this file in the repo. It caches the app shell only and never touches API responses, so a cached page can't show you stale macro data dressed as live.</p>
+    <p class="hint" style="margin-top:12px">The service worker (<code>sw.js</code>) and manifest are real files living beside this one in the repo — no download step needed. It caches the app shell only and never touches API responses, so a cached page can't show you stale macro data dressed as live.</p>
     <div id="store-note" style="margin-top:12px"></div>
   </div>
 </section>
@@ -2085,45 +2088,12 @@ function renderFoot(){
   if(sn) sn.innerHTML=`<div class="note ${kb>2000?'warn':'info'}">Using <b>${kb} KB</b> of the ~5 MB localStorage ceiling — shared with Research and Portfolio, same origin. Past ~2 MB this should move to Dexie.</div>`;
 }
 
-const SW_SRC=`/* IIP Macro — app-shell cache only.
-   API responses are NEVER cached: a stale macro reading that looks live is
-   worse than no reading at all. */
-const CACHE='iip-macro-v${APP_VERSION}';
-const SHELL=['./','./iip-macro.html'];
-self.addEventListener('install',e=>{
-  self.skipWaiting();
-  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL).catch(()=>{})));
-});
-self.addEventListener('activate',e=>{
-  e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
-});
-self.addEventListener('fetch',e=>{
-  const u=new URL(e.request.url);
-  if(/financialmodelingprep\.com|api\.groq\.com/.test(u.hostname)) return;
-  if(e.request.method!=='GET') return;
-  if(u.origin!==self.location.origin) return;
-  e.respondWith(
-    fetch(e.request).then(r=>{
-      const cp=r.clone();
-      caches.open(CACHE).then(c=>c.put(e.request,cp)).catch(()=>{});
-      return r;
-    }).catch(()=>caches.match(e.request))
-  );
-});`;
-function downloadSW(){ dl('sw.js',SW_SRC,'text/javascript'); toast('sw.js downloaded — drop it beside iip-macro.html'); }
-
 function installManifest(){
-  const m={name:'IIP Macro Intelligence',short_name:'IIP Macro',start_url:'./iip-macro.html',display:'standalone',
-    background_color:'#070d1a',theme_color:'#070d1a',description:'Macro regime dashboard',
-    icons:[{src:'data:image/svg+xml,'+encodeURIComponent(
-      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="104" fill="#070d1a"/><rect x="74" y="238" width="364" height="36" rx="10" fill="#12233d"/><rect x="316" y="216" width="16" height="80" rx="7" fill="#d4a949"/><rect x="182" y="226" width="10" height="60" rx="5" fill="#5a6f92"/><text x="256" y="404" font-family="Georgia,serif" font-size="112" font-weight="700" fill="#3fd0c9" text-anchor="middle">IIP</text></svg>`
-    ),sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
-  const l=document.createElement('link');
-  l.rel='manifest';
-  l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
-  document.head.appendChild(l);
+  // Manifest and icons are static files linked in <head> now — this just
+  // registers the shared service worker, also a real file rather than a
+  // downloadable blob.
   if('serviceWorker' in navigator && location.protocol.startsWith('http')){
-    navigator.serviceWorker.register('./sw.js').catch(()=>{ /* not deployed yet — fine */ });
+    navigator.serviceWorker.register('./sw.js').catch(()=>{ /* sw.js not deployed alongside this file yet — fine */ });
   }
 }
 
@@ -2184,6 +2154,66 @@ function initThemeWatcher(){
   }
 }
 
+/* ══════════ INSTALL BANNER ══════════
+   Chrome/Edge/Android fire beforeinstallprompt when PWA criteria are met
+   (manifest + service worker + https); iOS Safari never fires it at all —
+   there's no API for that, so iOS gets a manual "how to" instead. Dismissal
+   is remembered in shared state so it doesn't nag across all four apps
+   independently. */
+let deferredInstallPrompt=null;
+function isStandalone(){
+  return window.matchMedia('(display-mode: standalone)').matches || window.navigator.standalone===true;
+}
+function isIOS(){
+  return /iphone|ipad|ipod/i.test(navigator.userAgent) && !window.MSStream;
+}
+window.addEventListener('beforeinstallprompt',e=>{
+  e.preventDefault();
+  deferredInstallPrompt=e;
+  showInstallBanner();
+});
+window.addEventListener('appinstalled',()=>{
+  deferredInstallPrompt=null;
+  ST.pwaInstallDismissed=true; save();
+  const b=document.getElementById('install-banner'); if(b) b.remove();
+});
+function showInstallBanner(){
+  const host=document.getElementById('install-banner-slot');
+  if(!host||isStandalone()||ST.pwaInstallDismissed) return;
+  host.innerHTML=`<div class="note info" id="install-banner" style="border-radius:var(--r);margin-bottom:13px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+    <span>Install IIP as an app — quick access from your home screen, app-shell loads instantly even offline.</span>
+    <span style="display:flex;gap:8px;flex:none">
+      <button class="btn sm gold" onclick="triggerInstall()">Install</button>
+      <button class="btn sm" onclick="dismissInstallBanner()">Not now</button>
+    </span>
+  </div>`;
+}
+function showIOSInstallBanner(){
+  const host=document.getElementById('install-banner-slot');
+  if(!host||isStandalone()||ST.pwaInstallDismissed) return;
+  host.innerHTML=`<div class="note info" id="install-banner" style="border-radius:var(--r);margin-bottom:13px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+    <span>Install IIP: tap the Share icon, then <b>Add to Home Screen</b>. iOS doesn't allow an automatic install prompt.</span>
+    <button class="btn sm" onclick="dismissInstallBanner()">Got it</button>
+  </div>`;
+}
+async function triggerInstall(){
+  if(!deferredInstallPrompt) return;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt=null;
+  const b=document.getElementById('install-banner'); if(b) b.remove();
+}
+function dismissInstallBanner(){
+  ST.pwaInstallDismissed=true; save();
+  const b=document.getElementById('install-banner'); if(b) b.remove();
+}
+function initInstallBanner(){
+  if(isStandalone()) return;
+  if(isIOS()) showIOSInstallBanner();
+  // Chromium browsers: beforeinstallprompt fires later, asynchronously —
+  // showInstallBanner() runs from that listener above, not from here.
+}
+
 function boot(){
   load();
   applyTheme(); initThemeWatcher(); renderAppearance();
@@ -2204,6 +2234,7 @@ function boot(){
   document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeDetail(); });
 
   installManifest();
+  initInstallBanner();
   if(ST.keys.ai&&!ST.models.length) loadModels();
   const urlTab=new URLSearchParams(location.search).get('tab');
   if(urlTab) go(urlTab);
