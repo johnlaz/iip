@@ -6,7 +6,7 @@
 **Macro regime. Company valuation. Portfolio tracking.**
 **One shared dataset. Zero backend. Installs like a native app.**
 
-*A LAZLAB Creations product — Platform 01*
+*A LAZLAB Creations & GeniusPete product — Platform 01*
 
 </div>
 
