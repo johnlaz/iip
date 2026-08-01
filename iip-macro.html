@@ -800,8 +800,8 @@ async function probeEndpoints(){
 
 function epPath(k,q){
   const base=ST.endpoints[k]; if(!base) return null;
-  if(k==='econ')  return base.includes('stable')?`${base}?name=${q}&from=1990-01-01`:`${base}?name=${q}&from=1990-01-01`;
-  if(k==='curve') return `${base}?from=1990-01-01`;
+  if(k==='econ')  { const to=new Date().toISOString().slice(0,10); return base.includes('stable')?`${base}?name=${q}&from=2015-01-01&to=${to}`:`${base}?name=${q}&from=2015-01-01&to=${to}`; }
+  if(k==='curve') { const to=new Date().toISOString().slice(0,10); return `${base}?from=2015-01-01&to=${to}`; }
   if(k==='quote') return base.includes('stable')?`${base}?symbol=${q}`:`${base}/${q}`;
   if(k==='hist')  return base.includes('stable')?`${base}?symbol=${q}&from=2006-01-01`:`${base}/${q}?from=2006-01-01`;
   return null;
@@ -1384,6 +1384,7 @@ async function refreshAll(){
     const econ=CATALOG.filter(c=>c.src==='econ');
     if(ST.endpoints.econ){
       await pool(econ,async c=>{
+        let lastErr=null;
         for(const name of c.cand){
           try{
             const rows=asArr(await fmp(epPath('econ',name)));
@@ -1394,10 +1395,13 @@ async function refreshAll(){
                 ST.meta[c.id]={asof:sorted[0].d,src:'FMP · '+name,resolved:true};
                 return;
               }
+              lastErr=`${name}: returned rows but none had a usable value`;
+            }else{
+              lastErr=`${name}: empty response`;
             }
-          }catch(e){}
+          }catch(e){ lastErr=`${name}: ${e.message}`; }
         }
-        ST.meta[c.id]={asof:ST.meta[c.id]?.asof||null,src:'unresolved',resolved:false};
+        ST.meta[c.id]={asof:ST.meta[c.id]?.asof||null,src:'unresolved',resolved:false,err:lastErr};
       },4,(n,t)=>{btn.innerHTML=`<span class="spin"></span> ${n}/${t}`;});
     }
 
@@ -1807,7 +1811,8 @@ function renderIndicators(){
         return `<div class="glass card tile">
           <div class="tile-nm" data-tip="${esc(c.tip||c.nm)}">${esc(c.nm)}</div>
           <div class="tile-v flat" style="font-size:16px">—</div>
-          <div class="tile-u">${c.src==='manual'?'awaiting import':'unresolved'}</div>
+          <div class="tile-u" data-tip="${esc(m.err||'')}">${c.src==='manual'?'awaiting import':'unresolved'}</div>
+          ${m.err?`<div class="asof" style="color:var(--warn)">${esc(m.err)}</div>`:''}
           ${c.help?`<div class="asof">${esc(c.help)}</div>`:''}
         </div>`;
       }
