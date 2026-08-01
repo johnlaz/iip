@@ -1,0 +1,1391 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070d1a">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<title>IIP · Research</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,500;0,700;0,900;1,500&family=DM+Sans:opsz,wght@9..40,400;9..40,500;9..40,700&family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --void:#070d1a; --deep:#0b1425; --panel:rgba(19,32,56,.55); --panel-hi:rgba(28,45,76,.62);
+  --edge:rgba(120,160,220,.13); --edge-hi:rgba(180,215,255,.22);
+  --gold:#d4a949; --gold-hi:#f2cd72; --gold-dim:rgba(212,169,73,.13);
+  --teal:#3fd0c9; --teal-hi:#7ff0e9; --teal-dim:rgba(63,208,201,.12);
+  --ink:#e9f0fb; --ink-mid:#93a8c8; --ink-low:#5a6f92; --ink-faint:#38496a;
+  --pos:#46d495; --neg:#f2665c; --warn:#e8a63e;
+  --mono:'JetBrains Mono',ui-monospace,monospace;
+  --body:'DM Sans',system-ui,sans-serif;
+  --disp:'Playfair Display',Georgia,serif;
+  --r:14px; --r-sm:9px;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+html{-webkit-text-size-adjust:100%;overflow-x:hidden}
+body{
+  background:var(--void); color:var(--ink); font-family:var(--body);
+  font-size:14px; line-height:1.5; min-height:100vh; overflow-x:hidden;
+  padding-bottom:env(safe-area-inset-bottom);
+}
+body::before{
+  content:''; position:fixed; inset:0; z-index:0; pointer-events:none;
+  background:
+    radial-gradient(900px 620px at 12% -8%, rgba(63,208,201,.11), transparent 62%),
+    radial-gradient(760px 560px at 92% 4%, rgba(212,169,73,.10), transparent 60%),
+    radial-gradient(1100px 800px at 50% 108%, rgba(40,80,150,.14), transparent 68%);
+}
+.wrap{position:relative;z-index:1;max-width:1340px;margin:0 auto;padding:0 20px 90px}
+.num{font-family:var(--mono);font-variant-numeric:tabular-nums;font-feature-settings:"tnum" 1}
+
+/* ── glass ── */
+.glass{
+  background:var(--panel); border:1px solid var(--edge); border-radius:var(--r);
+  backdrop-filter:blur(16px) saturate(1.3); -webkit-backdrop-filter:blur(16px) saturate(1.3);
+  box-shadow:0 8px 34px rgba(0,0,0,.34), inset 0 1px 0 rgba(255,255,255,.045);
+}
+
+/* ── masthead ── */
+header{padding:30px 0 20px;display:flex;align-items:flex-end;gap:20px;flex-wrap:wrap}
+.brand{flex:1;min-width:250px}
+.eyebrow{
+  font-family:var(--mono);font-size:10px;letter-spacing:.34em;text-transform:uppercase;
+  color:var(--gold);margin-bottom:7px;display:flex;align-items:center;gap:9px
+}
+.eyebrow::after{content:'';flex:1;height:1px;background:linear-gradient(90deg,var(--gold-dim),transparent);max-width:150px}
+h1{font-family:var(--disp);font-size:clamp(30px,5.2vw,46px);font-weight:900;letter-spacing:-.022em;line-height:1}
+h1 em{font-style:italic;font-weight:500;color:var(--teal)}
+.tagline{color:var(--ink-low);font-size:12.5px;margin-top:7px;max-width:52ch}
+.hdr-side{display:flex;gap:9px;align-items:center;flex-wrap:wrap}
+.pill{
+  font-family:var(--mono);font-size:10.5px;letter-spacing:.09em;padding:6px 12px;
+  border-radius:999px;border:1px solid var(--edge);color:var(--ink-mid);background:rgba(10,20,38,.5);
+  display:inline-flex;align-items:center;gap:7px;white-space:nowrap
+}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--ink-faint);flex:none}
+.dot.ok{background:var(--pos);box-shadow:0 0 9px rgba(70,212,149,.75)}
+.dot.warn{background:var(--warn);box-shadow:0 0 9px rgba(232,166,62,.65)}
+.dot.err{background:var(--neg);box-shadow:0 0 9px rgba(242,102,92,.65)}
+.dot.live{animation:pulse 1.5s ease-in-out infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.25}}
+
+/* ── buttons ── */
+button{font-family:var(--body);cursor:pointer;border:0;background:none;color:inherit}
+.btn{
+  font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;font-weight:500;
+  padding:10px 17px;border-radius:var(--r-sm);border:1px solid var(--edge-hi);
+  background:rgba(20,36,62,.7);color:var(--ink);transition:.16s;white-space:nowrap
+}
+.btn:hover{border-color:var(--teal);color:var(--teal-hi);background:rgba(30,58,88,.7)}
+.btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+.btn.gold{border-color:rgba(212,169,73,.42);color:var(--gold-hi);background:var(--gold-dim)}
+.btn.gold:hover{border-color:var(--gold);background:rgba(212,169,73,.2)}
+.btn:disabled{opacity:.35;cursor:default}
+.btn.sm{padding:6px 11px;font-size:10px}
+
+/* ── tabs ── */
+nav.tabs{display:flex;gap:3px;margin:6px 0 22px;overflow-x:auto;scrollbar-width:none;padding-bottom:2px}
+nav.tabs::-webkit-scrollbar{display:none}
+.tab{
+  font-family:var(--mono);font-size:11px;letter-spacing:.13em;text-transform:uppercase;
+  padding:11px 16px;color:var(--ink-low);border-bottom:2px solid transparent;
+  transition:.16s;white-space:nowrap;position:relative
+}
+.tab:hover{color:var(--ink-mid)}
+.tab.on{color:var(--gold-hi);border-bottom-color:var(--gold)}
+.view{display:none;animation:fade .28s ease}
+.view.on{display:block}
+@keyframes fade{from{opacity:0;transform:translateY(7px)}to{opacity:1;transform:none}}
+
+/* ── SIGNATURE: regime spine ── */
+.spine-stack{padding:22px 24px 18px}
+.spine-hd{display:flex;justify-content:space-between;align-items:baseline;margin-bottom:20px;gap:14px;flex-wrap:wrap}
+.spine-hd h2{font-family:var(--disp);font-size:21px;font-weight:700;letter-spacing:-.01em}
+.spine-legend{font-family:var(--mono);font-size:9.5px;letter-spacing:.11em;color:var(--ink-faint);text-transform:uppercase;display:flex;gap:15px;flex-wrap:wrap}
+.spine-legend i{font-style:normal;display:inline-flex;align-items:center;gap:5px}
+.sw{width:9px;height:9px;border-radius:2px;display:inline-block}
+.spine{display:grid;grid-template-columns:130px 1fr 96px;gap:14px;align-items:center;padding:11px 0;border-bottom:1px solid rgba(120,160,220,.07)}
+.spine:last-child{border-bottom:0}
+.spine-name{font-family:var(--disp);font-size:15px;font-weight:700;letter-spacing:-.005em}
+.spine-name small{display:block;font-family:var(--mono);font-size:9px;letter-spacing:.1em;color:var(--ink-faint);text-transform:uppercase;font-weight:400;margin-top:2px}
+.track{
+  position:relative;height:26px;border-radius:5px;overflow:visible;
+  background:linear-gradient(90deg,rgba(242,102,92,.19) 0%,rgba(232,166,62,.13) 32%,rgba(90,111,146,.11) 50%,rgba(63,208,201,.13) 68%,rgba(70,212,149,.19) 100%);
+  border:1px solid var(--edge)
+}
+.track .decile{position:absolute;top:0;bottom:0;width:1px;background:rgba(120,160,220,.09)}
+.tick{position:absolute;top:-4px;bottom:-4px;width:3px;border-radius:2px;background:var(--gold);box-shadow:0 0 12px rgba(212,169,73,.85);transition:left .5s cubic-bezier(.4,0,.2,1);z-index:2}
+.tick.ghost{background:rgba(147,168,200,.42);box-shadow:none;width:2px;top:1px;bottom:1px;z-index:1}
+.tick-lbl{position:absolute;top:-19px;transform:translateX(-50%);font-family:var(--mono);font-size:9px;color:var(--gold-hi);white-space:nowrap;letter-spacing:.05em}
+.spine-val{text-align:right;font-family:var(--mono)}
+.spine-val b{display:block;font-size:17px;font-weight:700;letter-spacing:-.02em}
+.spine-val span{font-size:10px;color:var(--ink-low);letter-spacing:.04em}
+.up{color:var(--pos)} .down{color:var(--neg)} .flat{color:var(--ink-mid)}
+
+/* ── grids & cards ── */
+.grid{display:grid;gap:13px}
+.g2{grid-template-columns:repeat(auto-fit,minmax(min(330px,100%),1fr))}
+.g3{grid-template-columns:repeat(auto-fill,minmax(min(252px,100%),1fr))}
+.g4{grid-template-columns:repeat(auto-fill,minmax(min(196px,100%),1fr))}
+.card{padding:16px 17px}
+.card-hd{display:flex;justify-content:space-between;align-items:baseline;gap:10px;margin-bottom:13px}
+.card-hd h3{font-family:var(--disp);font-size:16px;font-weight:700}
+.card-hd .k{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint)}
+
+/* indicator tile */
+.tile{padding:13px 14px;position:relative;overflow:hidden}
+.tile::after{content:'';position:absolute;left:0;top:0;bottom:0;width:2px;background:var(--ink-faint);transition:.2s}
+.tile.hot::after{background:var(--pos)} .tile.cold::after{background:var(--neg)} .tile.mid::after{background:var(--warn)}
+.tile-nm{font-size:11.5px;color:var(--ink-mid);line-height:1.3;margin-bottom:9px;min-height:30px;font-weight:500}
+.tile-v{font-family:var(--mono);font-size:23px;font-weight:700;letter-spacing:-.028em;line-height:1}
+.tile-u{font-family:var(--mono);font-size:9.5px;color:var(--ink-faint);letter-spacing:.06em;margin-top:3px}
+.tile-row{display:flex;gap:11px;margin-top:11px;padding-top:9px;border-top:1px solid rgba(120,160,220,.08);font-family:var(--mono);font-size:10px}
+.tile-row div{flex:1}
+.tile-row i{font-style:normal;display:block;color:var(--ink-faint);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;margin-bottom:2px}
+.asof{font-family:var(--mono);font-size:9px;color:var(--ink-faint);letter-spacing:.05em;margin-top:9px;display:flex;align-items:center;gap:5px}
+.asof.stale{color:var(--warn)}
+.spark{display:block;width:100%;height:30px;margin-top:9px;opacity:.85}
+
+/* ── table ── */
+table{width:100%;border-collapse:collapse}
+th{
+  font-family:var(--mono);font-size:9.5px;letter-spacing:.12em;text-transform:uppercase;
+  color:var(--ink-faint);font-weight:400;text-align:right;padding:0 9px 9px 0;border-bottom:1px solid var(--edge)
+}
+th:first-child{text-align:left}
+td{padding:9px 9px 9px 0;border-bottom:1px solid rgba(120,160,220,.06);text-align:right;font-family:var(--mono);font-size:12.5px}
+td:first-child{text-align:left;font-family:var(--body);font-weight:500}
+tbody tr:hover{background:rgba(63,208,201,.045)}
+.tk{font-family:var(--mono);font-weight:700;color:var(--gold-hi);font-size:12.5px}
+.bar{height:5px;border-radius:3px;background:rgba(120,160,220,.13);position:relative;overflow:hidden;min-width:50px}
+.bar i{position:absolute;top:0;bottom:0;left:50%;border-radius:3px;transition:.4s}
+
+/* ── forms ── */
+label.f{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-low);margin-bottom:6px}
+input[type=text],input[type=password],textarea,select{
+  width:100%;padding:10px 12px;font-family:var(--mono);font-size:12.5px;
+  background:rgba(6,13,26,.72);border:1px solid var(--edge);border-radius:var(--r-sm);color:var(--ink)
+}
+input:focus,textarea:focus,select:focus{outline:0;border-color:var(--teal);box-shadow:0 0 0 3px rgba(63,208,201,.13)}
+textarea{resize:vertical;min-height:100px;line-height:1.55}
+input[type=range]{width:100%;-webkit-appearance:none;appearance:none;height:4px;border-radius:3px;background:rgba(120,160,220,.2);outline:0}
+input[type=range]::-webkit-slider-thumb{-webkit-appearance:none;width:16px;height:16px;border-radius:50%;background:var(--gold);cursor:pointer;box-shadow:0 0 10px rgba(212,169,73,.6)}
+input[type=range]::-moz-range-thumb{width:16px;height:16px;border:0;border-radius:50%;background:var(--gold);cursor:pointer}
+.fld{margin-bottom:15px}
+.hint{font-size:11px;color:var(--ink-low);margin-top:6px;line-height:1.45}
+
+/* drop zone */
+.drop{border:1.5px dashed var(--edge-hi);border-radius:var(--r);padding:26px 20px;text-align:center;transition:.18s;cursor:pointer}
+.drop:hover,.drop.over{border-color:var(--teal);background:var(--teal-dim)}
+.drop b{font-family:var(--disp);font-size:16px;display:block;margin-bottom:5px}
+.drop span{font-size:11.5px;color:var(--ink-low)}
+
+/* changes feed */
+.chg{display:flex;gap:13px;padding:11px 0;border-bottom:1px solid rgba(120,160,220,.07);align-items:flex-start}
+.chg:last-child{border-bottom:0}
+.chg-i{width:26px;height:26px;border-radius:7px;display:grid;place-items:center;flex:none;font-family:var(--mono);font-size:12px;font-weight:700}
+.chg-b{flex:1;min-width:0}
+.chg-b b{font-size:12.5px;font-weight:500;display:block}
+.chg-b span{font-family:var(--mono);font-size:10.5px;color:var(--ink-low)}
+
+/* misc */
+.empty{padding:40px 22px;text-align:center;color:var(--ink-low)}
+.empty b{font-family:var(--disp);font-size:18px;color:var(--ink-mid);display:block;margin-bottom:7px}
+.empty p{font-size:12.5px;max-width:44ch;margin:0 auto;line-height:1.6}
+.note{padding:12px 14px;border-radius:var(--r-sm);font-size:11.5px;line-height:1.55;border-left:2px solid}
+.note.warn{background:rgba(232,166,62,.09);border-color:var(--warn);color:#f0d5a4}
+.note.info{background:var(--teal-dim);border-color:var(--teal);color:#b6f0ec}
+.sec-t{font-family:var(--mono);font-size:10px;letter-spacing:.2em;text-transform:uppercase;color:var(--ink-faint);margin:26px 0 12px;display:flex;align-items:center;gap:11px}
+.sec-t::after{content:'';flex:1;height:1px;background:var(--edge)}
+.toast{position:fixed;bottom:22px;left:50%;transform:translateX(-50%) translateY(90px);z-index:200;padding:12px 20px;border-radius:999px;font-size:12.5px;transition:transform .3s cubic-bezier(.4,0,.2,1);pointer-events:none;max-width:90vw}
+.toast.on{transform:translateX(-50%) translateY(0)}
+.spin{width:15px;height:15px;border:2px solid rgba(120,160,220,.22);border-top-color:var(--teal);border-radius:50%;animation:sp .7s linear infinite;display:inline-block;vertical-align:-3px}
+@keyframes sp{to{transform:rotate(360deg)}}
+.brief{font-size:13.5px;line-height:1.72;color:#d3e0f2}
+.brief p{margin-bottom:11px}
+.brief strong{color:var(--gold-hi);font-weight:700}
+footer{margin-top:34px;padding-top:16px;border-top:1px solid var(--edge);display:flex;justify-content:space-between;gap:14px;flex-wrap:wrap;font-family:var(--mono);font-size:9.5px;letter-spacing:.09em;color:var(--ink-faint);text-transform:uppercase}
+@media(max-width:640px){
+  .wrap{padding:0 13px 80px}
+  .spine{grid-template-columns:1fr;gap:7px;padding:14px 0}
+  .spine-val{text-align:left;display:flex;gap:11px;align-items:baseline}
+  .spine-val b{display:inline}
+  .spine-stack{padding:17px 15px}
+  .card{padding:14px}
+}
+@media(prefers-reduced-motion:reduce){*{animation-duration:.01ms!important;transition-duration:.01ms!important}}
+
+/* ── plan button & roadmap list ── */
+.plan-fab{
+  position:fixed;top:14px;right:14px;z-index:90;
+  font-family:var(--mono);font-size:10px;letter-spacing:.1em;text-transform:uppercase;
+  padding:8px 13px;border-radius:999px;border:1px solid var(--edge-hi);
+  background:rgba(10,20,38,.78);backdrop-filter:blur(10px);-webkit-backdrop-filter:blur(10px);
+  color:var(--ink-mid);cursor:pointer;display:flex;align-items:center;gap:7px;transition:.16s;
+  box-shadow:0 6px 20px rgba(0,0,0,.3)
+}
+.plan-fab:hover{border-color:var(--gold);color:var(--gold-hi)}
+.plan-fab .dot{background:var(--gold)}
+@media(max-width:640px){.plan-fab{top:10px;right:10px;padding:7px 11px;font-size:9.5px}}
+.plan-item{padding:12px 0;border-bottom:1px solid rgba(120,160,220,.07)}
+.plan-item:last-child{border-bottom:0}
+.plan-item label{display:flex;gap:11px;align-items:flex-start;cursor:pointer}
+.plan-item input[type=checkbox]{margin-top:3px;accent-color:var(--gold);width:15px;height:15px;flex:none;cursor:pointer}
+.plan-item .pt{font-size:12.5px;font-weight:600;color:var(--ink)}
+.plan-item .pn{font-size:11.5px;color:var(--ink-low);line-height:1.55;margin-top:3px;display:block}
+
+/* ── tooltip: custom, not native title ── */
+[data-tip]{position:relative;cursor:help}
+[data-tip]::after{
+  content:attr(data-tip); position:absolute; left:50%; bottom:calc(100% + 9px); transform:translateX(-50%) translateY(4px);
+  width:max-content; max-width:236px; padding:9px 11px; border-radius:8px;
+  background:#0a1526; border:1px solid var(--edge-hi); color:var(--ink);
+  font-family:var(--body); font-size:11.5px; font-weight:400; line-height:1.5; letter-spacing:0; text-transform:none;
+  box-shadow:0 10px 28px rgba(0,0,0,.5); opacity:0; pointer-events:none; z-index:50;
+  transition:opacity .13s ease, transform .13s ease;
+}
+[data-tip]::before{
+  content:''; position:absolute; left:50%; bottom:calc(100% + 4px); transform:translateX(-50%);
+  border:5px solid transparent; border-top-color:var(--edge-hi); opacity:0; pointer-events:none;
+  transition:opacity .13s ease; z-index:50;
+}
+[data-tip]:hover::after,[data-tip]:focus-visible::after{opacity:1;transform:translateX(-50%) translateY(0)}
+[data-tip]:hover::before,[data-tip]:focus-visible::before{opacity:1}
+[data-tip].tip-r::after{left:0;transform:translateX(0) translateY(4px)}
+[data-tip].tip-r:hover::after{transform:translateX(0) translateY(0)}
+[data-tip].tip-r::before{left:14px;transform:none}
+.tip-ic{
+  display:inline-grid;place-items:center;width:14px;height:14px;border-radius:50%;
+  border:1px solid var(--ink-faint);color:var(--ink-faint);font-family:var(--mono);font-size:9px;
+  font-style:normal;flex:none;transition:.15s
+}
+[data-tip]:hover .tip-ic{border-color:var(--teal);color:var(--teal-hi)}
+
+/* ── badges ── */
+.badge{
+  display:inline-flex;align-items:center;gap:5px;font-family:var(--mono);font-size:9.5px;
+  letter-spacing:.09em;text-transform:uppercase;padding:4px 9px;border-radius:999px;
+  border:1px solid; white-space:nowrap
+}
+.badge.pos{color:var(--pos);border-color:rgba(70,212,149,.4);background:rgba(70,212,149,.1)}
+.badge.neg{color:var(--neg);border-color:rgba(242,102,92,.4);background:rgba(242,102,92,.1)}
+.badge.warn{color:var(--warn);border-color:rgba(232,166,62,.4);background:rgba(232,166,62,.1)}
+.badge.flat{color:var(--ink-low);border-color:var(--edge);background:rgba(120,160,220,.06)}
+.badge.gold{color:var(--gold-hi);border-color:rgba(212,169,73,.4);background:var(--gold-dim)}
+
+/* ── clickable rows/tiles ── */
+.clk{cursor:pointer;transition:.14s}
+.clk:hover{border-color:var(--teal);transform:translateY(-1px)}
+.clk:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
+tr.clk:hover{background:rgba(63,208,201,.07)}
+tr.clk:hover td:first-child{color:var(--teal-hi)}
+.expand-ic{float:right;color:var(--ink-faint);font-size:11px;font-family:var(--mono)}
+
+/* ── detail modal ── */
+.modal-ov{
+  position:fixed;inset:0;z-index:110;background:rgba(4,9,18,.74);backdrop-filter:blur(4px);
+  display:none;align-items:flex-end;justify-content:center;-webkit-backdrop-filter:blur(4px)
+}
+.modal-ov.on{display:flex;animation:fadeIn .16s ease}
+@keyframes fadeIn{from{opacity:0}to{opacity:1}}
+.modal-box{
+  width:100%;max-width:780px;max-height:90vh;overflow-y:auto;
+  border-radius:20px 20px 0 0;padding:24px 24px calc(24px + env(safe-area-inset-bottom));
+  animation:slideUp .22s cubic-bezier(.22,1,.36,1)
+}
+@keyframes slideUp{from{transform:translateY(28px);opacity:.4}to{transform:none;opacity:1}}
+@media(min-width:760px){
+  .modal-ov{align-items:center}
+  .modal-box{border-radius:20px;margin-bottom:5vh}
+}
+.modal-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;margin-bottom:6px}
+.modal-hd h2{font-family:var(--disp);font-size:22px;font-weight:700;letter-spacing:-.015em}
+.modal-hd p{font-size:12.5px;color:var(--ink-low);margin-top:5px;max-width:52ch;line-height:1.5}
+.modal-x{
+  width:30px;height:30px;border-radius:9px;border:1px solid var(--edge-hi);display:grid;place-items:center;
+  flex:none;font-size:15px;color:var(--ink-mid);transition:.14s
+}
+.modal-x:hover{color:var(--neg);border-color:var(--neg)}
+.chart-wrap{margin:18px 0 6px;border-radius:var(--r-sm);background:rgba(6,13,26,.4);border:1px solid var(--edge);padding:10px 6px 4px}
+.chart-legend{display:flex;gap:14px;flex-wrap:wrap;padding:0 8px 6px;font-family:var(--mono);font-size:9.5px;color:var(--ink-low)}
+.chart-legend i{font-style:normal;display:inline-flex;align-items:center;gap:5px}
+.chart-legend em{font-style:normal;width:14px;height:2px;display:inline-block}
+.stat-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(88px,100%),1fr));gap:10px;margin-top:16px}
+.stat-cell{padding:10px 11px;border-radius:var(--r-sm);background:rgba(120,160,220,.05);border:1px solid var(--edge)}
+.stat-cell i{font-style:normal;display:block;font-family:var(--mono);font-size:8.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:4px}
+.stat-cell b{font-family:var(--mono);font-size:15px;font-weight:700;letter-spacing:-.02em}
+.range-btn.on{background:var(--gold-dim);border-color:var(--gold);color:var(--gold-hi)}
+
+/* ── cycle read ── */
+.cycle-card{padding:24px}
+.cycle-hd{display:flex;justify-content:space-between;align-items:flex-start;gap:16px;flex-wrap:wrap;margin-bottom:16px}
+.cycle-hd h2{font-family:var(--disp);font-size:20px;font-weight:700}
+.stage-badge{
+  font-family:var(--disp);font-size:24px;font-weight:900;letter-spacing:-.02em;
+  color:var(--gold-hi);display:flex;align-items:baseline;gap:10px;flex-wrap:wrap
+}
+.confmeter{height:5px;border-radius:3px;background:rgba(120,160,220,.15);overflow:hidden;width:120px}
+.confmeter i{display:block;height:100%;background:linear-gradient(90deg,var(--teal),var(--gold));border-radius:3px}
+.pillar-chips{display:flex;gap:8px;flex-wrap:wrap;margin:14px 0}
+.pchip{
+  padding:8px 12px;border-radius:10px;border:1px solid;font-size:11.5px;display:flex;align-items:center;gap:7px;cursor:help
+}
+.pchip b{font-family:var(--mono);font-size:9px;letter-spacing:.08em;text-transform:uppercase}
+.cycle-lists{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:16px;margin-top:16px}
+.cycle-lists h4{font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-faint);margin-bottom:8px}
+.cycle-lists ul{list-style:none}
+.cycle-lists li{font-size:12.5px;padding:6px 0 6px 15px;position:relative;line-height:1.5;border-bottom:1px solid rgba(120,160,220,.06)}
+.cycle-lists li::before{content:'—';position:absolute;left:0;color:var(--ink-faint)}
+
+.app-switch{display:flex;gap:12px;align-items:center;padding:12px 0 0;font-family:var(--mono);font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--ink-low)}
+.app-switch a{color:var(--ink-mid);text-decoration:none;transition:color .15s}
+.app-switch a:hover{color:var(--teal-hi)}
+.app-switch .cur{color:var(--gold-hi)}
+.app-switch .sep{color:var(--ink-faint)}
+</style>
+</head>
+<body>
+<div class="wrap">
+<div class="app-switch"><a href="./iip-home.html">Home</a><span class="sep">·</span><a href="./iip-macro.html">Macro</a><span class="sep">·</span><span class="cur">Research</span><span class="sep">·</span><a href="./iip-portfolio.html">Portfolio</a></div>
+<header>
+  <div class="brand">
+    <div class="eyebrow">LAZLAB Creations · Platform 01</div>
+    <h1>Research <em>&amp; Valuation</em></h1>
+    <p class="tagline">Intrinsic value ranges and a first-pass S&amp;P 500 scan — not one number pretending to be certain.</p>
+  </div>
+  <div class="hdr-side">
+    <span class="pill" data-tip="Green = key set and endpoints resolved. Amber = key saved, not yet probed. Red = probe failed."><i class="dot" id="d-fmp"></i>FMP</span>
+  </div>
+</header>
+
+<nav class="tabs">
+  <button class="tab" data-v="val" onclick="go('val',this)" data-tip="Single-company intrinsic value range from DCF, Graham and historical multiples, plus a quality/certainty read.">Valuation</button>
+  <button class="tab" data-v="scr" onclick="go('scr',this)" data-tip="S&amp;P 500 ranked on trailing P/E, P/B, ROE, debt/equity and margin — a first-pass scan, not the full valuation engine.">Screener</button>
+  <button class="tab" data-v="mon" onclick="go('mon',this)" data-tip="Earnings and dividend dates for your watchlist and Portfolio holdings, plus a margin-of-safety flag from Valuation's cache.">Monitor</button>
+  <button class="tab" data-v="set" onclick="go('set',this)" data-tip="API keys, endpoint status, data export.">Settings</button>
+</nav>
+
+<section class="view" id="v-val">
+  <div class="glass card" style="margin-bottom:13px">
+    <div class="card-hd"><h3 data-tip="Pulls profile, 5yr annual income/balance/cash flow statements and ratios for one company. Falls back to the latest single year for any statement your FMP plan restricts to fewer years.">Company Lookup</h3><span class="k">FMP · annual, 5yr</span></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap">
+      <input type="text" id="val-ticker" placeholder="Ticker — e.g. AAPL" style="max-width:220px;text-transform:uppercase" maxlength="8" autocomplete="off" spellcheck="false" onkeydown="if(event.key==='Enter')lookupCompany()">
+      <button class="btn gold" id="btn-val-go" onclick="lookupCompany()">Look up</button>
+    </div>
+  </div>
+  <div id="val-body">
+    <div class="empty">
+      <b>No company loaded</b>
+      <p>Look up a ticker to build an intrinsic value range from a two-stage DCF, the modified Graham formula, and historical P/E — alongside a quality and certainty read on the underlying business.</p>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="v-scr">
+  <div class="glass card" style="margin-bottom:13px">
+    <div class="card-hd"><h3 data-tip="One call for the S&amp;P 500 constituent list, then one lightweight trailing-ratios call per company — not the six-statement pull Valuation does per ticker.">S&amp;P 500 Screener</h3>
+      <div style="display:flex;align-items:center;gap:9px">
+        <span class="pill" data-tip="Green = screener data synced within 24h. Amber = older, worth a re-run." id="pill-scr-sync"><i class="dot" id="d-scr-sync"></i><span id="scr-sync-lbl">never synced</span></span>
+        <button class="btn gold" id="btn-screener-run" onclick="runScreener()">Run screener</button>
+      </div>
+    </div>
+    <p class="hint">Ranks each company against the others actually pulled, on trailing P/E, P/B, ROE, debt/equity and net margin — a first-pass scan. Click any row to send it to Valuation for the full DCF/Graham/multiples deep dive. Takes roughly a minute the first time; ~500 companies, one call each.</p>
+  </div>
+  <div id="screener-body">
+    <div class="empty">
+      <b>No screener data</b>
+      <p>Hit <b style="color:var(--gold-hi)">Run screener</b> above.</p>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="v-mon">
+  <div class="glass card" style="margin-bottom:13px">
+    <div class="card-hd"><h3 data-tip="Watchlist entries plus anything held in Portfolio — shared state, read directly, no separate fetch needed to know what's in scope.">Watchlist</h3></div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:flex-end">
+      <div class="fld" style="max-width:150px"><label class="f">Ticker</label><input type="text" id="wl-symbol" placeholder="AAPL" style="text-transform:uppercase" maxlength="8" onkeydown="if(event.key==='Enter')addWatch()"></div>
+      <button class="btn gold" onclick="addWatch()">Add to watchlist</button>
+    </div>
+    <div id="wl-chips" style="margin-top:12px"></div>
+  </div>
+  <div class="glass card" style="margin-bottom:13px">
+    <div class="card-hd"><h3 data-tip="One earnings call and one dividend call per monitored ticker — not the broad market-wide calendar, since only tracked tickers matter here.">Earnings &amp; Dividends</h3>
+      <div style="display:flex;align-items:center;gap:9px">
+        <span class="pill" data-tip="Green = monitoring data synced within 24h. Amber = older, worth a re-run." id="pill-mon-sync"><i class="dot" id="d-mon-sync"></i><span id="mon-sync-lbl">never synced</span></span>
+        <button class="btn gold" id="btn-mon-refresh" onclick="runMonitoring()">Refresh monitoring</button>
+      </div>
+    </div>
+  </div>
+  <div id="mon-body">
+    <div class="empty">
+      <b>Nothing to monitor yet</b>
+      <p>Add a ticker to the watchlist above, or hold something in Portfolio.</p>
+    </div>
+  </div>
+</section>
+
+<section class="view" id="v-set">
+  <div class="glass card">
+    <div class="card-hd"><h3>Keys</h3><span class="k">localStorage only</span></div>
+    <div class="fld">
+      <label class="f" style="display:flex;justify-content:space-between;align-items:baseline">
+        <span data-tip="Powers company lookups and the S&amp;P 500 screener. Shared automatically with the Macro and Portfolio apps — same origin, same key, enter it once.">FMP API key</span>
+        <a href="https://site.financialmodelingprep.com/register" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:9.5px;color:var(--teal-hi);text-decoration:none;letter-spacing:.08em" data-tip="Opens FMP's signup page in a new tab.">GET KEY →</a>
+      </label>
+      <input type="password" id="k-fmp" placeholder="required">
+    </div>
+    <button class="btn gold" onclick="saveKeys()">Save key</button>
+    <p class="hint">Never leaves this browser. If the Macro app already has a key saved here, it'll show up above automatically — same localStorage, same origin.</p>
+  </div>
+  <div class="sec-t">About</div>
+  <div class="glass card" style="margin-bottom:14px">
+    <p class="hint" style="margin:0 0 10px">Full build plan, what's live vs. not started, and the architecture notes now live on the <a href="./iip-home.html" style="color:var(--gold-hi)">Home</a> launcher — one place to check status across all three apps.</p>
+  </div>
+  <div class="sec-t">Data &amp; PWA</div>
+  <div class="glass card">
+    <div style="display:flex;gap:9px;flex-wrap:wrap">
+      <button class="btn sm" onclick="exportAll()" data-tip="Downloads all series, settings and cached valuations as JSON. API keys are deliberately excluded.">Export snapshot</button>
+      <button class="btn sm" onclick="document.getElementById('imp-json').click()" data-tip="Restores from a previously exported snapshot. Keys already saved in this browser are kept.">Import snapshot</button>
+      <button class="btn sm" onclick="downloadSW()" data-tip="Generates the service worker file — a separate same-origin file browsers require, can't be inlined.">Download sw.js</button>
+      <button class="btn sm" onclick="wipe()" data-tip="Permanently clears everything stored in this browser — shared across all IIP apps. Cannot be undone.">Reset all data</button>
+    </div>
+    <input type="file" id="imp-json" accept=".json" hidden>
+    <p class="hint" style="margin-top:12px">This storage is shared with the Macro and Portfolio apps — resetting here resets everywhere.</p>
+    <div id="store-note" style="margin-top:12px"></div>
+  </div>
+</section>
+
+
+<footer>
+  <span>IIP Research · v<span id="ver"></span> · schema <span id="schema"></span></span>
+  <span id="foot-r"></span>
+</footer>
+</div>
+<div class="toast glass" id="toast"></div>
+<script>
+"use strict";
+const APP_VERSION='1.3.0', SCHEMA='iip_v1';
+
+/* staleness tolerance in days, by frequency */
+
+const FRESH_MS=24*60*60*1000;
+
+function freshEnough(iso){ return iso && (Date.now()-Date.parse(iso))<FRESH_MS; }
+
+function agoStr(iso){
+  if(!iso) return 'never';
+  const s=Math.round((Date.now()-Date.parse(iso))/1000);
+  if(s<60) return s+'s ago';
+  if(s<3600) return Math.round(s/60)+'m ago';
+  if(s<86400) return Math.round(s/3600)+'h ago';
+  return Math.round(s/86400)+'d ago';
+}
+
+/* ══════════ STATE ══════════ */
+
+const DEFAULT={
+  keys:{fmp:'',ai:''},
+  model:'openai/gpt-oss-120b',
+  models:[],
+  series:{},              // id -> [{d:'YYYY-MM-DD', v:number}, …] newest first
+  meta:{},                // id -> {asof, src, resolved}
+  sectors:{},
+  companies:{},           // ticker -> {profile, income[], balance[], cashflow[], ratios[], keymetrics[], fetchedAt, assumptions:{growth,discount,termGrowth,aaaYield}}
+  lastValTicker:null,
+  watchlist:[],           // ticker strings — union with Portfolio's holdings defines the monitored set
+  monitoring:{},          // ticker -> {earnings:[...], dividends:[...]}
+  monitoringFetchedAt:null,
+  planChecks:{},          // roadmap item id -> bool. Local to this browser only, not shared.
+  weights:{growth:20,labor:15,inflation:20,rates:15,credit:20,sentiment:10},
+  endpoints:{},
+  lastSeen:null,
+  sectorsFetchedAt:null,
+  screener:{rows:[]},
+  screenerFetchedAt:null,
+  portfolio:{holdings:[],cash:0},   // holdings: [{id,symbol,shares,cost,target}]
+  portfolioFetchedAt:null,
+  journal:[],              // [{id,date,symbol,tag,title,body}]
+  lastSnapshot:{},
+  brief:'',
+  cycle:null              // {stage,confidence,pillars:[{id,read,why}],drivers,watch,summary,asof,model,builtFrom}
+};
+/* moving-average windows by native frequency — "if applicable" means: skip when
+   the series is too short to support the longer window */
+
+const MA_BY_FREQ={D:[50,200],W:[13,52],M:[3,12],Q:[4,8]};
+
+let ST=structuredClone(DEFAULT);
+
+function load(){
+  try{
+    const raw=localStorage.getItem(SCHEMA);
+    if(raw) ST=Object.assign(structuredClone(DEFAULT),JSON.parse(raw));
+    else{ // migrate from any earlier schema
+      for(const old of ['iip_v0']){
+        const o=localStorage.getItem(old);
+        if(o){ ST=Object.assign(structuredClone(DEFAULT),JSON.parse(o)); save(); break; }
+      }
+    }
+  }catch(e){ console.warn('load failed',e); }
+}
+
+function save(){
+  try{ localStorage.setItem(SCHEMA,JSON.stringify(ST)); }
+  catch(e){
+    if(String(e).match(/quota|exceed/i)) toast('Storage full — export a snapshot and reset. Time to move to Dexie.');
+  }
+}
+
+function bytes(){ try{ return new Blob([localStorage.getItem(SCHEMA)||'']).size; }catch(e){ return 0; } }
+
+/* ══════════ STATS ENGINE ══════════
+   One function applied uniformly to every series. */
+
+function heuristic(score){
+  if(score==null) return {lbl:'No data',cls:'flat'};
+  if(score>=66) return {lbl:'Supportive',cls:'pos'};
+  if(score<=33) return {lbl:'Headwind',cls:'neg'};
+  return {lbl:'Neutral',cls:'warn'};
+}
+
+const pick=(o,ks)=>{ for(const k of ks){ if(o&&o[k]!=null) return +o[k]; } return null; };
+
+const sub=(a,b)=>(a==null||b==null)?null:a-b;
+
+const fmtN=(n,d)=>n==null||!Number.isFinite(n)?'—':n.toLocaleString('en-US',{minimumFractionDigits:d??(Math.abs(n)<10?2:Math.abs(n)<1000?1:0),maximumFractionDigits:d??(Math.abs(n)<10?2:Math.abs(n)<1000?1:0)});
+
+const sign=n=>n==null?'':n>0?'+':'';
+
+const cls=n=>n==null?'flat':n>0?'up':n<0?'down':'flat';
+
+const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+/* Every chart/stats/valuation calc assumes rows[0] is the newest observation.
+   The manual-import path already enforces this; FMP's own ordering isn't
+   guaranteed the same way across every endpoint, so sort explicitly at
+   every ingestion point rather than trusting raw API order. */
+
+const sortNewestFirst=rows=>[...rows].sort((a,b)=>String(b.d).localeCompare(String(a.d)));
+
+function toast(m){ const t=document.getElementById('toast'); t.textContent=m; t.classList.add('on'); clearTimeout(t._x); t._x=setTimeout(()=>t.classList.remove('on'),3400); }
+
+function dot(id,s){ const e=document.getElementById(id); if(e) e.className='dot'+(s?' '+s:''); }
+
+function timeout(p,ms,lbl){ return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error((lbl||'request')+' timed out')),ms))]); }
+
+/* bounded concurrency — keeps the FMP call budget sane */
+
+async function pool(items,fn,size=4,onEach){
+  const out=[]; let i=0;
+  await Promise.all(Array.from({length:Math.min(size,items.length)},async()=>{
+    while(i<items.length){
+      const k=i++;
+      try{ out[k]=await fn(items[k]); }catch(e){ out[k]={error:String(e.message||e)}; }
+      if(onEach) onEach(k+1,items.length);
+    }
+  }));
+  return out;
+}
+
+/* ══════════ FMP ══════════ */
+
+let CALLS=0;
+
+async function fmp(path){
+  if(!ST.keys.fmp) throw new Error('No FMP key');
+  const url=`https://financialmodelingprep.com${path}${path.includes('?')?'&':'?'}apikey=${ST.keys.fmp}`;
+  CALLS++;
+  const r=await timeout(fetch(url),15000,'FMP');
+  const txt=await r.text();
+  if(!r.ok) throw new Error(`HTTP ${r.status} ${txt.slice(0,90)}`);
+  let j; try{ j=JSON.parse(txt); }catch(e){ throw new Error('Non-JSON response'); }
+  if(j&&(j['Error Message']||j.error)) throw new Error(String(j['Error Message']||j.error).slice(0,110));
+  return j;
+}
+
+const asArr=d=>Array.isArray(d)?d:(d&&Array.isArray(d.historical)?d.historical:[]);
+
+/* Resolve which endpoint generation answers, once, then remember it. */
+
+async function probeEndpoints(){
+  const tests=[
+    {k:'econ', paths:['/stable/economic-indicators?name=GDP','/api/v3/economic?name=GDP'], lbl:'Economics'},
+    {k:'curve',paths:['/stable/treasury-rates','/api/v4/treasury'],                        lbl:'Treasury'},
+    {k:'quote',paths:['/api/v3/quote/SPY','/stable/quote?symbol=SPY'],                     lbl:'Quotes'},
+    {k:'hist', paths:['/api/v3/historical-price-full/SPY?from=2024-01-01','/stable/historical-price-eod/full?symbol=SPY&from=2024-01-01'], lbl:'History'},
+    {k:'funda',paths:['/stable/profile?symbol=AAPL','/api/v3/profile/AAPL'],                 lbl:'Fundamentals'}
+  ];
+  const el=document.getElementById('ep-status');
+  if(el) el.innerHTML='<span class="spin"></span> probing…';
+  for(const t of tests){
+    ST.endpoints[t.k]=null;
+    for(const p of t.paths){
+      try{ const d=await fmp(p); if(asArr(d).length){ ST.endpoints[t.k]=p.split('?')[0]; break; } }
+      catch(e){ /* try next generation */ }
+    }
+  }
+  save(); renderEndpoints();
+  const ok=Object.values(ST.endpoints).filter(Boolean).length;
+  dot('d-fmp',ok===0?'err':ok<4?'warn':'ok');
+  return ST.endpoints;
+}
+
+function epPath(k,q){
+  const base=ST.endpoints[k]; if(!base) return null;
+  if(k==='econ')  return base.includes('stable')?`${base}?name=${q}`:`${base}?name=${q}`;
+  if(k==='curve') return base;
+  if(k==='quote') return base.includes('stable')?`${base}?symbol=${q}`:`${base}/${q}`;
+  if(k==='hist')  return base.includes('stable')?`${base}?symbol=${q}&from=2006-01-01`:`${base}/${q}?from=2006-01-01`;
+  return null;
+}
+/* Company statement endpoints all follow the same stable-vs-legacy shape as
+   everything else probed above, so resolve the style once from the funda
+   probe and apply it uniformly rather than re-probing per statement. */
+
+const FUNDA_MAP={
+  profile:   {stable:'/stable/profile',                legacy:'/api/v3/profile'},
+  income:    {stable:'/stable/income-statement',        legacy:'/api/v3/income-statement'},
+  balance:   {stable:'/stable/balance-sheet-statement', legacy:'/api/v3/balance-sheet-statement'},
+  cashflow:  {stable:'/stable/cash-flow-statement',     legacy:'/api/v3/cash-flow-statement'},
+  ratios:    {stable:'/stable/ratios',                  legacy:'/api/v3/ratios'},
+  keymetrics:{stable:'/stable/key-metrics',             legacy:'/api/v3/key-metrics'}
+};
+
+function fundaPath(kind,symbol,limit){
+  const resolved=ST.endpoints.funda;
+  const style=resolved&&resolved.includes('stable')?'stable':'legacy';
+  const base=FUNDA_MAP[kind][style];
+  if(kind==='profile') return style==='stable'?`${base}?symbol=${symbol}`:`${base}/${symbol}`;
+  const lim=limit||5;
+  return style==='stable'?`${base}?symbol=${symbol}&period=annual&limit=${lim}`:`${base}/${symbol}?period=annual&limit=${lim}`;
+}
+/* Screener: one call for the constituent list, one lightweight TTM-ratios
+   call per ticker (not the six-statement pull Valuation does) — full DCF
+   across 500 companies isn't practical client-side, so this is a first-pass
+   scan on trailing ratios; Valuation stays the deep-dive on a single name. */
+
+function sp500Path(){
+  const resolved=ST.endpoints.funda;
+  const style=resolved&&resolved.includes('stable')?'stable':'legacy';
+  return style==='stable'?'/stable/sp500-constituent':'/api/v3/sp500_constituent';
+}
+
+function ttmRatiosPath(symbol){
+  const resolved=ST.endpoints.funda;
+  const style=resolved&&resolved.includes('stable')?'stable':'legacy';
+  return style==='stable'?`/stable/ratios-ttm?symbol=${symbol}`:`/api/v3/ratios-ttm/${symbol}`;
+}
+/* Confirmed against FMP's own docs (stable/earnings-company, stable/dividends-company)
+   rather than guessed — both are per-symbol, single param, no date-range needed. */
+function earningsPath(symbol){
+  const resolved=ST.endpoints.funda;
+  const style=resolved&&resolved.includes('stable')?'stable':'legacy';
+  return style==='stable'?`/stable/earnings?symbol=${symbol}`:`/api/v3/historical/earning_calendar/${symbol}`;
+}
+function dividendsPath(symbol){
+  const resolved=ST.endpoints.funda;
+  const style=resolved&&resolved.includes('stable')?'stable':'legacy';
+  return style==='stable'?`/stable/dividends?symbol=${symbol}`:`/api/v3/historical-price-full/stock_dividend/${symbol}`;
+}
+
+function fmt$(n){ return n==null||!Number.isFinite(n)?'—':'$'+fmtN(n,2); }
+
+function fmtPctA(n){ return n==null?'—':sign(n*100)+(n*100).toFixed(1)+'%'; }
+
+function pctRank(vals,i){
+  const v=vals[i]; if(v==null||!Number.isFinite(v)) return null;
+  const clean=vals.filter(Number.isFinite);
+  if(clean.length<3) return null;
+  const below=clean.filter(x=>x<v).length;
+  return (below/(clean.length-1))*100;
+}
+/* Momentum (40%) + relative strength vs SPY (30%) + trend vs 50/200D (30%).
+   NOT included, unlike the original plan's spec for this phase: earnings
+   revisions, valuation, growth, or macro/regime context — those aren't in
+   the auto-pulled dataset yet. Said here, not left implicit. */
+
+function dl(name,content,type){
+  const b=new Blob([content],{type:type||'application/json'});
+  const u=URL.createObjectURL(b), a=document.createElement('a');
+  a.href=u; a.download=name; a.click();
+  setTimeout(()=>URL.revokeObjectURL(u),1500);
+}
+
+function exportAll(){
+  const c=structuredClone(ST); c.keys={fmp:'',ai:''};   // never export secrets
+  dl(`iip_${APP_NAME.toLowerCase()}_snapshot_${new Date().toISOString().slice(0,10)}.json`,JSON.stringify({v:APP_VERSION,schema:SCHEMA,data:c},null,2));
+  toast('Snapshot exported (keys excluded)');
+}
+
+function importSnapshot(f){
+  const rd=new FileReader();
+  rd.onload=()=>{
+    try{
+      const j=JSON.parse(rd.result);
+      const d=j.data||j;
+      const keys=ST.keys;                              // keep the keys already in this browser
+      ST=Object.assign(structuredClone(DEFAULT),d); ST.keys=keys;
+      save(); renderAll(); toast('Snapshot imported');
+    }catch(e){ toast('Not a valid snapshot file'); }
+  };
+  rd.readAsText(f);
+}
+
+function wipe(){
+  if(!confirm('Erase all stored series, weights and keys in this browser?')) return;
+  localStorage.removeItem(SCHEMA); ST=structuredClone(DEFAULT); save();
+  document.getElementById('k-fmp').value=''; document.getElementById('k-ai').value='';
+  renderAll(); toast('All data cleared');
+}
+
+const DEFAULT_ASSUMPTIONS={growth:0.08,discount:0.09,termGrowth:0.025,aaaYield:0.05};
+
+function cagr(newest,oldest,years){
+  if(newest==null||oldest==null||oldest<=0||years<=0) return null;
+  return Math.pow(newest/oldest,1/years)-1;
+}
+
+function volOfGrowth(valsNewestFirst){
+  // stdev of period-over-period growth rates — a stability read, not a level.
+  const asc=[...valsNewestFirst].reverse().filter(Number.isFinite);
+  const g=[];
+  for(let i=1;i<asc.length;i++){ if(asc[i-1]!==0) g.push((asc[i]-asc[i-1])/Math.abs(asc[i-1])); }
+  if(g.length<2) return null;
+  const m=g.reduce((a,b)=>a+b,0)/g.length;
+  return Math.sqrt(g.reduce((a,b)=>a+(b-m)**2,0)/g.length);
+}
+
+function bandScore(val,goodAt,badAt){
+  // linear map, clamped 0-100. Works whether "good" is high or low.
+  if(val==null) return null;
+  const t=(val-badAt)/(goodAt-badAt);
+  return Math.max(0,Math.min(100,t*100));
+}
+
+/* ── DCF: two-stage, FCFF discounted, Gordon-growth terminal value ── */
+
+function calcDCF({fcfBase,growth,discount,termGrowth,years,netDebt,shares}){
+  if(!fcfBase||fcfBase<=0||!shares||discount<=termGrowth) return null;
+  let pv=0,fcf=fcfBase;
+  for(let t=1;t<=years;t++){ fcf*=(1+growth); pv+=fcf/Math.pow(1+discount,t); }
+  const tv=(fcf*(1+termGrowth))/(discount-termGrowth);
+  const pvTV=tv/Math.pow(1+discount,years);
+  const equityValue=(pv+pvTV)-(netDebt||0);
+  const perShare=equityValue/shares;
+  return {perShare,pv,pvTV,equityValue};
+}
+/* ── Modified Graham: V = EPS × (8.5 + 2g) × 4.4 / Y ── */
+
+function calcGraham({eps,growth,aaaYield}){
+  if(!eps||eps<=0||!aaaYield) return null;
+  const g=growth*100, y=aaaYield*100;
+  return (eps*(8.5+2*g)*4.4)/y;
+}
+/* ── Historical multiples: current EPS × own trailing average P/E ── */
+
+function calcMultiples({eps,avgPE}){
+  if(!eps||eps<=0||!avgPE||avgPE<=0) return null;
+  return eps*avgPE;
+}
+
+function buildValuation(co,assumptions){
+  const inc=co.income, bal=co.balance, cf=co.cashflow, rat=co.ratios, km=co.keymetrics, p=co.profile;
+  const years=Math.min(inc.length,bal.length,cf.length)-1;
+  const revNew=inc[0]?.revenue, revOld=inc[years]?.revenue;
+  const growthDefault=Math.max(-0.05,Math.min(0.30,cagr(revNew,revOld,years)??0.05));
+  const a=Object.assign({},DEFAULT_ASSUMPTIONS,{growth:growthDefault},assumptions||{});
+
+  const fcfVals=cf.slice(0,3).map(r=>r.freeCashFlow).filter(Number.isFinite);
+  const fcfBase=fcfVals.length?fcfVals.reduce((x,y)=>x+y,0)/fcfVals.length:null;
+  const eps=inc[0]?.epsdiluted??inc[0]?.eps??null;
+  const shares=inc[0]?.weightedAverageShsOutDil||p?.mktCap&&p?.price?p.mktCap/p.price:null;
+  const netDebt=bal[0]?.netDebt??((bal[0]?.totalDebt||0)-(bal[0]?.cashAndCashEquivalents||0));
+  const peVals=rat.slice(0,8).map(r=>r.priceEarningsRatio).filter(v=>Number.isFinite(v)&&v>0&&v<60);
+  const avgPE=peVals.length?peVals.reduce((x,y)=>x+y,0)/peVals.length:null;
+
+  const scen=(mult,discAdj)=>({
+    dcf:calcDCF({fcfBase,growth:a.growth*mult,discount:a.discount+discAdj,termGrowth:a.termGrowth,years:5,netDebt,shares}),
+    graham:calcGraham({eps,growth:a.growth*mult,aaaYield:a.aaaYield}),
+    mult:calcMultiples({eps,avgPE:avgPE?avgPE*(1+discAdj*-4):null}) // widen/compress multiple opposite to discount bump
+  });
+  const cons=scen(0.5,0.02), base=scen(1,0), opt=scen(1.35,-0.015);
+  const blend=s=>{ const vs=[s.dcf?.perShare,s.graham,s.mult].filter(v=>Number.isFinite(v)&&v>0); return vs.length?vs.reduce((x,y)=>x+y,0)/vs.length:null; };
+  const range={low:blend(cons),base:blend(base),high:blend(opt)};
+
+  // ── quality & certainty ──
+  const revCV=volOfGrowth(inc.map(r=>r.revenue));
+  const epsCV=volOfGrowth(inc.map(r=>r.epsdiluted??r.eps));
+  const fcfCV=volOfGrowth(cf.map(r=>r.freeCashFlow));
+  const ebit=inc[0]?.operatingIncome, tax=inc[0]?.incomeTaxExpense,pretax=inc[0]?.incomeBeforeTax;
+  const taxRate=(tax!=null&&pretax)?Math.max(0,Math.min(0.4,tax/pretax)):0.21;
+  const investedCap=(bal[0]?.totalDebt||0)+(bal[0]?.totalStockholdersEquity||0)-(bal[0]?.cashAndCashEquivalents||0);
+  const roic=(ebit!=null&&investedCap>0)?(ebit*(1-taxRate))/investedCap:null;
+  const intCov=(ebit!=null&&inc[0]?.interestExpense)?ebit/Math.abs(inc[0].interestExpense):null;
+  const de=rat[0]?.debtEquityRatio??null;
+  const cashConv=(cf[0]?.freeCashFlow!=null&&inc[0]?.netIncome)?cf[0].freeCashFlow/inc[0].netIncome:null;
+
+  const qParts=[bandScore(roic,0.20,0.02),bandScore(intCov,15,1.5),bandScore(de,0.3,3),bandScore(cashConv,1.1,0.3)].filter(v=>v!=null);
+  const quality=qParts.length?qParts.reduce((x,y)=>x+y,0)/qParts.length:null;
+  const cParts=[bandScore(revCV,0.03,0.35),bandScore(epsCV,0.05,0.7),bandScore(fcfCV,0.08,0.9)].filter(v=>v!=null);
+  const certainty=cParts.length?cParts.reduce((x,y)=>x+y,0)/cParts.length:null;
+
+  const price=p?.price??null;
+  const mos=(range.base&&price)?((range.base-price)/range.base)*100:null;
+
+  return {a,eps,fcfBase,netDebt,shares,avgPE,years,range,price,mos,
+    methods:{dcf:base.dcf?.perShare??null,graham:base.graham,mult:base.mult},
+    quality,certainty,roic,intCov,de,cashConv,revCV,epsCV,fcfCV};
+}
+
+function assumptionsRow(id,label,val,min,max,step,fmtFn,tip){
+  return `<div class="fld">
+    <label class="f" style="display:flex;justify-content:space-between" data-tip="${esc(tip)}">
+      <span>${esc(label)}</span><span class="num" style="color:var(--gold-hi)">${fmtFn(val)}</span>
+    </label>
+    <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}" oninput="onValSlider()">
+  </div>`;
+}
+
+function renderValuation(ticker){
+  const host=document.getElementById('val-body');
+  const co=ST.companies[ticker];
+  if(!co){ host.innerHTML='<div class="empty"><b>No company loaded</b><p>Look up a ticker above.</p></div>'; return; }
+  const v=buildValuation(co,co.assumptions);
+  const p=co.profile;
+  const fresh=freshEnough(co.fetchedAt);
+
+  const lo=v.range.low,ba=v.range.base,hi=v.range.high,price=v.price;
+  const allVals=[lo,ba,hi,price].filter(Number.isFinite);
+  const trackMin=allVals.length?Math.min(...allVals)*0.85:0, trackMax=allVals.length?Math.max(...allVals)*1.15:1;
+  const pos=x=>x==null?null:Math.max(0,Math.min(100,((x-trackMin)/(trackMax-trackMin))*100));
+  const mosCls=v.mos==null?'flat':v.mos>=15?'pos':v.mos<=-15?'neg':'warn';
+  const qh=heuristic(v.quality), ch=heuristic(v.certainty);
+  const errKeys=Object.keys(co.errors||{});
+  const errBanner=errKeys.length?`<div class="note warn" style="margin-bottom:13px;border-radius:var(--r)">
+      <strong>${errKeys.length} of 6 sources unavailable</strong> on your FMP plan: ${errKeys.map(esc).join(', ')}.
+      Methods needing that data will show — as a range endpoint, not a crash.</div>`:'';
+
+  host.innerHTML=`
+    ${errBanner}
+    <div class="company-header glass card" style="margin-bottom:13px;display:flex;flex-wrap:wrap;gap:18px;justify-content:space-between;align-items:flex-end">
+      <div>
+        <div style="font-family:var(--disp);font-weight:900;font-size:1.9rem;letter-spacing:-.02em">${esc(p.symbol)}</div>
+        <div style="color:var(--ink-mid);font-size:.9rem;margin-top:3px">${esc(p.companyName||'')}</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:9px">
+          ${p.sector?`<span class="tag" style="font-family:var(--mono);font-size:9.5px;border:1px solid var(--edge);padding:3px 9px;border-radius:999px;color:var(--ink-mid)">${esc(p.sector)}</span>`:''}
+          ${p.industry?`<span class="tag" style="font-family:var(--mono);font-size:9.5px;border:1px solid var(--edge);padding:3px 9px;border-radius:999px;color:var(--ink-mid)">${esc(p.industry)}</span>`:''}
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div class="num" style="font-size:1.7rem;font-weight:700">${fmt$(price)}</div>
+        <div class="num" style="font-size:.78rem;color:var(--ink-low)">mkt cap ${p.mktCap?fmtN(p.mktCap):'—'}</div>
+        <div class="asof ${fresh?'':'stale'}" style="justify-content:flex-end;margin-top:6px"><i class="dot ${fresh?'ok':'warn'}"></i>synced ${agoStr(co.fetchedAt)}</div>
+      </div>
+    </div>
+
+    <div class="glass spine-stack" style="margin-bottom:13px">
+      <div class="spine-hd">
+        <h2 data-tip="Blend of DCF, modified Graham, and historical P/E, each run under conservative/base/optimistic growth assumptions.">Fair Value Range</h2>
+        <span class="badge ${mosCls}" data-tip="How far current price sits below (positive) or above (negative) the base-case fair value.">${v.mos==null?'—':sign(v.mos)+v.mos.toFixed(0)+'% margin of safety'}</span>
+      </div>
+      <div class="track" style="height:34px">
+        ${lo!=null?`<span class="tick ghost" style="left:${pos(lo)}%" data-tip="Conservative: ${fmt$(lo)}"></span>`:''}
+        ${hi!=null?`<span class="tick ghost" style="left:${pos(hi)}%" data-tip="Optimistic: ${fmt$(hi)}"></span>`:''}
+        ${ba!=null?`<span class="tick" style="left:${pos(ba)}%"></span><span class="tick-lbl" style="left:${pos(ba)}%">${fmt$(ba)}</span>`:''}
+        ${price!=null?`<span class="tick" style="left:${pos(price)}%;background:var(--teal);box-shadow:0 0 12px rgba(63,208,201,.85)"></span>`:''}
+      </div>
+      <div class="spine-legend" style="margin-top:10px">
+        <i><span class="sw" style="background:var(--gold)"></span>Base fair value</i>
+        <i><span class="sw" style="background:rgba(147,168,200,.42)"></span>Conservative / optimistic</i>
+        <i><span class="sw" style="background:var(--teal)"></span>Current price</i>
+      </div>
+    </div>
+
+    <div class="grid g3" style="margin-bottom:13px">
+      <div class="glass card tile"><div class="tile-nm">DCF (base case)</div><div class="tile-v">${fmt$(v.methods.dcf)}</div><div class="tile-u">2-stage FCFF, 5yr</div></div>
+      <div class="glass card tile"><div class="tile-nm">Modified Graham</div><div class="tile-v">${fmt$(v.methods.graham)}</div><div class="tile-u">EPS×(8.5+2g)×4.4/Y</div></div>
+      <div class="glass card tile"><div class="tile-nm">Historical P/E</div><div class="tile-v">${fmt$(v.methods.mult)}</div><div class="tile-u">avg P/E ${v.avgPE?v.avgPE.toFixed(1):'—'}× · ${v.years}yr</div></div>
+    </div>
+
+    <div class="grid g2" style="margin-bottom:13px">
+      <div class="glass card">
+        <div class="card-hd"><h3 data-tip="Balance-sheet strength and capital efficiency — not price behavior.">Quality</h3><span class="badge ${qh.cls}">${qh.lbl}</span></div>
+        <div class="grid g4">
+          <div class="stat-cell"><i>ROIC</i><b class="num">${v.roic==null?'—':(v.roic*100).toFixed(1)+'%'}</b></div>
+          <div class="stat-cell"><i>Interest cover</i><b class="num">${v.intCov==null?'—':v.intCov.toFixed(1)+'×'}</b></div>
+          <div class="stat-cell"><i>Debt / equity</i><b class="num">${v.de==null?'—':v.de.toFixed(2)}</b></div>
+          <div class="stat-cell"><i>Cash conversion</i><b class="num">${v.cashConv==null?'—':v.cashConv.toFixed(2)}</b></div>
+        </div>
+      </div>
+      <div class="glass card">
+        <div class="card-hd"><h3 data-tip="Volatility of revenue/EPS/FCF growth rates — fundamental predictability, not stock-price volatility.">Certainty</h3><span class="badge ${ch.cls}">${ch.lbl}</span></div>
+        <div class="grid g3">
+          <div class="stat-cell"><i>Revenue vol</i><b class="num">${v.revCV==null?'—':(v.revCV*100).toFixed(1)+'%'}</b></div>
+          <div class="stat-cell"><i>EPS vol</i><b class="num">${v.epsCV==null?'—':(v.epsCV*100).toFixed(1)+'%'}</b></div>
+          <div class="stat-cell"><i>FCF vol</i><b class="num">${v.fcfCV==null?'—':(v.fcfCV*100).toFixed(1)+'%'}</b></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="glass card">
+      <div class="card-hd"><h3 data-tip="Every scenario recalculates live as you move these — nothing is hardcoded.">Assumptions</h3><span class="k">base case</span></div>
+      <div class="grid g2">
+        ${assumptionsRow('a-growth','Growth rate',v.a.growth,-0.05,0.30,0.005,x=>(x*100).toFixed(1)+'%','Base-case revenue/FCF growth. Defaults to trailing revenue CAGR, clamped to -5%..30%.')}
+        ${assumptionsRow('a-discount','Discount rate',v.a.discount,0.04,0.16,0.0025,x=>(x*100).toFixed(2)+'%','Rate future cash flows are discounted at — a WACC proxy. Higher = more conservative.')}
+        ${assumptionsRow('a-term','Terminal growth',v.a.termGrowth,0.005,0.045,0.0025,x=>(x*100).toFixed(2)+'%','Perpetual growth rate applied after year 5 in the DCF. Should stay near long-run GDP growth.')}
+        ${assumptionsRow('a-aaa','AAA bond yield',v.a.aaaYield,0.02,0.08,0.0025,x=>(x*100).toFixed(2)+'%','Feeds the Graham formula\u2019s denominator. Update to the current AAA corporate yield periodically.')}
+      </div>
+      <p class="hint">Conservative uses 0.5× growth / +2pt discount; optimistic uses 1.35× growth / −1.5pt discount. Blended range = average of all three methods per scenario.</p>
+    </div>`;
+}
+
+function onValSlider(){
+  const ticker=ST.lastValTicker; if(!ticker||!ST.companies[ticker]) return;
+  ST.companies[ticker].assumptions={
+    growth:+document.getElementById('a-growth').value,
+    discount:+document.getElementById('a-discount').value,
+    termGrowth:+document.getElementById('a-term').value,
+    aaaYield:+document.getElementById('a-aaa').value
+  };
+  save(); renderValuation(ticker);
+}
+
+async function lookupCompany(){
+  const raw=document.getElementById('val-ticker').value.trim().toUpperCase();
+  if(!raw) return;
+  if(!ST.keys.fmp){ toast('Add your FMP key in Settings first'); go('set'); return; }
+  const btn=document.getElementById('btn-val-go');
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  document.getElementById('val-body').innerHTML='<div class="loading" style="text-align:center;padding:50px 0"><span class="spin"></span> pulling '+esc(raw)+'…</div>';
+  try{
+    const co=await fetchCompany(raw);
+    co.assumptions=(ST.companies[raw]&&ST.companies[raw].assumptions)||null;
+    ST.companies[raw]=co; ST.lastValTicker=raw; save();
+    renderValuation(raw);
+  }catch(e){
+    document.getElementById('val-body').innerHTML=`<div class="note warn" style="border-radius:var(--r)">${esc(e.message)}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='Look up';
+  }
+}
+
+/* Standalone trigger for the Sectors tab — previously this data only ever
+   loaded as a side effect of the header's global Refresh, with no feedback
+   if the historical-price endpoint didn't resolve or a plan's history was
+   too shallow for the 200D MA. Both failure modes now say so explicitly. */
+
+async function fetchCompany(ticker){
+  if(!ST.endpoints.funda) await probeEndpoints();
+  if(!ST.endpoints.funda) throw new Error('Fundamentals endpoint unresolved — check your FMP plan covers statements.');
+
+  // Each statement fetched independently — a plan-tier block (HTTP 402) on
+  // one shouldn't take the whole lookup down. Step down to limit=1 once if
+  // limit=5 itself gets rejected, since some tiers only allow the latest period.
+  const byRawDateDesc=(a,b)=>String(b.date||'').localeCompare(String(a.date||''));
+  async function pull(kind){
+    try{ return {rows:asArr(await fmp(fundaPath(kind,ticker,5))).sort(byRawDateDesc),err:null}; }
+    catch(e){
+      if(/limit|premium/i.test(e.message)){
+        try{ return {rows:asArr(await fmp(fundaPath(kind,ticker,1))).sort(byRawDateDesc),err:null}; }
+        catch(e2){ return {rows:[],err:e2.message}; }
+      }
+      return {rows:[],err:e.message};
+    }
+  }
+  const [profileR,income,balance,cashflow,ratios,keymetrics]=await Promise.all([
+    fmp(fundaPath('profile',ticker)).then(d=>({rows:asArr(d),err:null})).catch(e=>({rows:[],err:e.message})),
+    pull('income'), pull('balance'), pull('cashflow'), pull('ratios'), pull('keymetrics')
+  ]);
+  const p=profileR.rows[0]||null;
+  if(!p && !income.rows.length) throw new Error(`No fundamentals returned for ${ticker} — check the symbol, or your FMP plan may not cover this endpoint (${income.err||profileR.err||'unknown error'}).`);
+  const errors={};
+  [['profile',profileR],['income',income],['balance',balance],['cashflow',cashflow],['ratios',ratios],['keymetrics',keymetrics]]
+    .forEach(([k,r])=>{ if(r.err&&!r.rows.length) errors[k]=r.err; });
+  return {
+    profile:p, income:income.rows, balance:balance.rows, cashflow:cashflow.rows,
+    ratios:ratios.rows, keymetrics:keymetrics.rows, errors,
+    fetchedAt:new Date().toISOString()
+  };
+}
+
+/* ── shared math helpers ── */
+
+function screenerScores(rows){
+  if(!rows||rows.length<3) return rows.map(r=>({...r,valScore:null,qScore:null,comp:null}));
+  const arr=k=>rows.map(r=>r[k]);
+  const peArr=arr('pe'), pbArr=arr('pb'), roeArr=arr('roe'), deArr=arr('de'), nmArr=arr('nm');
+  return rows.map((r,i)=>{
+    const peP=pctRank(peArr,i), pbP=pctRank(pbArr,i);
+    const valParts=[[peP,0.5],[pbP,0.5]].filter(([p])=>p!=null).map(([p,w])=>[100-p,w]); // cheap = low percentile → invert
+    const vsum=valParts.reduce((a,[,w])=>a+w,0);
+    const valScore=vsum?valParts.reduce((a,[p,w])=>a+p*w,0)/vsum:null;
+
+    const roeP=pctRank(roeArr,i);
+    const deP=deArr[i]!=null&&Number.isFinite(deArr[i])?100-pctRank(deArr,i):null; // low debt = low percentile → invert
+    const nmP=pctRank(nmArr,i);
+    const qParts=[[roeP,0.4],[deP,0.3],[nmP,0.3]].filter(([p])=>p!=null);
+    const qsum=qParts.reduce((a,[,w])=>a+w,0);
+    const qScore=qsum?qParts.reduce((a,[p,w])=>a+p*w,0)/qsum:null;
+
+    const compParts=[[valScore,0.5],[qScore,0.5]].filter(([p])=>p!=null);
+    const csum=compParts.reduce((a,[,w])=>a+w,0);
+    const comp=csum?compParts.reduce((a,[p,w])=>a+p*w,0)/csum:null;
+    return {...r,valScore,qScore,comp};
+  });
+}
+
+async function runScreener(){
+  const btn=document.getElementById('btn-screener-run');
+  const host=document.getElementById('screener-body');
+  if(!ST.keys.fmp){ toast('Add your FMP key in Settings first'); go('set'); return; }
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> constituents…';
+  host.innerHTML='<div class="loading" style="text-align:center;padding:50px 0"><span class="spin"></span> pulling S&P 500 list…</div>';
+  try{
+    if(!ST.endpoints.funda) await probeEndpoints();
+    if(!ST.endpoints.funda) throw new Error('Fundamentals endpoint unresolved — check your FMP plan covers statements, then Re-probe in Settings.');
+
+    const cons=asArr(await fmp(sp500Path()));
+    if(!cons.length) throw new Error('No constituents returned — check your FMP plan covers index constituents (sp500-constituent).');
+    const meta={};
+    cons.forEach(c=>{ if(c.symbol) meta[c.symbol]={name:c.name||c.companyName||c.symbol, sector:c.sector||'—'}; });
+    const symbols=Object.keys(meta);
+
+    const res=await pool(symbols,async sym=>{
+      const r=asArr(await fmp(ttmRatiosPath(sym)))[0];
+      if(!r) return null;
+      return {
+        symbol:sym, name:meta[sym].name, sector:meta[sym].sector,
+        pe:r.priceToEarningsRatioTTM??r.priceEarningsRatioTTM??null,
+        pb:r.priceToBookRatioTTM??null,
+        roe:r.returnOnEquityTTM??null,
+        de:r.debtToEquityRatioTTM??r.debtEquityRatioTTM??null,
+        nm:r.netProfitMarginTTM??null,
+        divYield:r.dividendYieldTTM??null
+      };
+    },6,(n,tot)=>{ btn.innerHTML=`<span class="spin"></span> ${n}/${tot}`; });
+
+    const clean=res.filter(r=>r&&!r.error);
+    if(!clean.length) throw new Error('No ratio data came back for any constituent — check your FMP plan covers ratios-ttm.');
+
+    ST.screener={rows:clean};
+    ST.screenerFetchedAt=new Date().toISOString();
+    save();
+    renderScreener();
+    toast(`Screened ${clean.length} of ${symbols.length} S&P 500 companies.`);
+  }catch(e){
+    host.innerHTML=`<div class="note warn" style="border-radius:var(--r)">${esc(e.message)}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='Run screener';
+  }
+}
+
+/* ══════════ MONITORING & ALERTS ══════════
+   Phase 8. Monitored set = watchlist ∪ Portfolio's holdings (shared state,
+   read directly — no separate fetch needed to know what's held). Earnings
+   and dividends are per-symbol calls, not the broad market-wide calendar,
+   since we only care about tickers actually being tracked. Valuation
+   alerts reuse buildValuation() on whatever's already cached in
+   ST.companies — no new fetch, just flags what's already been looked up.
+   NOT built: automated push/email alerts (this is a pull-to-refresh app,
+   no background execution) or macro/portfolio-level alert triggers from
+   the original plan's fuller "Alerts" scope — earnings/dividends only. */
+
+function monitoredTickers(){
+  const wl=(ST.watchlist||[]);
+  const holdings=(ST.portfolio&&ST.portfolio.holdings)?ST.portfolio.holdings.map(h=>h.symbol):[];
+  return [...new Set([...wl,...holdings])];
+}
+function addWatch(){
+  const raw=(document.getElementById('wl-symbol').value||'').trim().toUpperCase();
+  if(!raw){ return; }
+  if(!ST.watchlist.includes(raw)) ST.watchlist.push(raw);
+  save(); renderMonitoring();
+  document.getElementById('wl-symbol').value='';
+}
+function removeWatch(symbol){
+  ST.watchlist=ST.watchlist.filter(s=>s!==symbol);
+  save(); renderMonitoring();
+}
+function nextAndLastEarnings(rows){
+  if(!rows||!rows.length) return {next:null,last:null};
+  const today=new Date().toISOString().slice(0,10);
+  const sorted=[...rows].filter(r=>r.date).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  const future=sorted.filter(r=>r.date>=today);
+  const past=sorted.filter(r=>r.date<today);
+  return {next:future.length?future[0]:null, last:past.length?past[past.length-1]:null};
+}
+function nextAndLastDividend(rows){
+  if(!rows||!rows.length) return {next:null,last:null,prior:null};
+  const today=new Date().toISOString().slice(0,10);
+  const sorted=[...rows].filter(r=>r.date).sort((a,b)=>String(a.date).localeCompare(String(b.date)));
+  const future=sorted.filter(r=>r.date>=today);
+  const past=sorted.filter(r=>r.date<today);
+  return {next:future.length?future[0]:null, last:past.length?past[past.length-1]:null, prior:past.length>1?past[past.length-2]:null};
+}
+function valuationAlert(symbol){
+  const co=ST.companies[symbol]; if(!co) return null;
+  try{ const v=buildValuation(co,co.assumptions); return v.mos; }catch(e){ return null; }
+}
+async function runMonitoring(){
+  const btn=document.getElementById('btn-mon-refresh');
+  const host=document.getElementById('mon-body');
+  const tickers=monitoredTickers();
+  if(!tickers.length){ toast('Add a ticker to your watchlist, or hold something in Portfolio, first'); return; }
+  if(!ST.keys.fmp){ toast('Add your FMP key in Settings first'); go('set'); return; }
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  try{
+    if(!ST.endpoints.funda) await probeEndpoints();
+    if(!ST.endpoints.funda) throw new Error('Fundamentals endpoint unresolved — check Settings.');
+    const res=await pool(tickers,async sym=>{
+      const [earnRes,divRes]=await Promise.allSettled([fmp(earningsPath(sym)),fmp(dividendsPath(sym))]);
+      return {
+        symbol:sym,
+        earnings: earnRes.status==='fulfilled'?asArr(earnRes.value):[],
+        dividends: divRes.status==='fulfilled'?asArr(divRes.value):[],
+        err: (earnRes.status==='rejected'&&divRes.status==='rejected')?earnRes.reason.message:null
+      };
+    },5,(n,tot)=>{ btn.innerHTML=`<span class="spin"></span> ${n}/${tot}`; });
+    const mon={};
+    let hit=0;
+    res.forEach(r=>{ if(r&&!r.error){ mon[r.symbol]={earnings:r.earnings,dividends:r.dividends}; if(r.earnings.length||r.dividends.length) hit++; } });
+    ST.monitoring=mon;
+    ST.monitoringFetchedAt=new Date().toISOString();
+    save(); renderMonitoring();
+    toast(`Monitoring data pulled for ${hit} of ${tickers.length} tickers.`);
+  }catch(e){
+    host.innerHTML=`<div class="note warn" style="border-radius:var(--r)">${esc(e.message)}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='Refresh monitoring';
+  }
+}
+function daysUntil(dateStr){
+  if(!dateStr) return null;
+  return Math.round((Date.parse(dateStr)-Date.now())/864e5);
+}
+function renderMonitoring(){
+  const chipHost=document.getElementById('wl-chips');
+  const host=document.getElementById('mon-body');
+  const tickers=monitoredTickers();
+
+  if(chipHost){
+    chipHost.innerHTML = ST.watchlist.length ? ST.watchlist.map(s=>
+      `<span class="tag" style="font-family:var(--mono);font-size:10.5px;border:1px solid var(--edge);padding:4px 9px;border-radius:999px;color:var(--ink-mid);display:inline-flex;align-items:center;gap:6px;margin:0 6px 6px 0">
+        ${esc(s)}<button onclick="removeWatch('${esc(s)}')" style="background:none;border:0;color:var(--ink-faint);cursor:pointer;font-size:11px;padding:0" data-tip="Remove from watchlist">✕</button>
+      </span>`).join('') : '<p class="hint">Nothing on the watchlist yet — holdings from Portfolio are monitored automatically either way.</p>';
+  }
+
+  if(!host) return;
+  if(!tickers.length){
+    host.innerHTML='<div class="empty"><b>Nothing to monitor</b><p>Add a ticker to the watchlist above, or hold something in Portfolio — either puts it in scope here.</p></div>';
+    return;
+  }
+  if(!ST.monitoringFetchedAt || !Object.keys(ST.monitoring||{}).length){
+    host.innerHTML=`<div class="empty"><b>${tickers.length} ticker${tickers.length===1?'':'s'} ready to monitor</b><p>Hit <b style="color:var(--gold-hi)">Refresh monitoring</b> above to pull earnings and dividend dates.</p></div>`;
+    return;
+  }
+
+  const rows=tickers.map(sym=>{
+    const m=ST.monitoring[sym]||{earnings:[],dividends:[]};
+    const eq=nextAndLastEarnings(m.earnings);
+    const dq=nextAndLastDividend(m.dividends);
+    const mos=valuationAlert(sym);
+    return {sym,eq,dq,mos};
+  });
+
+  host.innerHTML=`<div style="overflow-x:auto"><table>
+    <thead><tr>
+      <th>Ticker</th>
+      <th data-tip="Next scheduled earnings date, days from today.">Next earnings</th>
+      <th data-tip="Actual vs. estimated EPS from the most recent reported quarter, if FMP has it.">Last surprise</th>
+      <th data-tip="Next ex-dividend date, if scheduled and known.">Next ex-div</th>
+      <th data-tip="Most recent dividend amount vs. the one before it.">Div trend</th>
+      <th data-tip="Margin of safety from Valuation's cache, if this ticker's been looked up there.">Valuation</th>
+    </tr></thead>
+    <tbody>${rows.map(r=>{
+      const dU=r.eq.next?daysUntil(r.eq.next.date):null;
+      const surprise=(r.eq.last&&r.eq.last.eps!=null&&r.eq.last.epsEstimated!=null)?r.eq.last.eps-r.eq.last.epsEstimated:null;
+      const divChg=(r.dq.last&&r.dq.prior&&r.dq.prior.dividend)?((r.dq.last.dividend-r.dq.prior.dividend)/r.dq.prior.dividend)*100:null;
+      const mosCls=r.mos==null?'flat':r.mos>=20?'pos':r.mos<=-20?'neg':'warn';
+      return `<tr class="clk" tabindex="0" role="button" aria-label="Open ${esc(r.sym)} in Valuation" onclick="openInValuation('${esc(r.sym)}')" onkeydown="if(event.key==='Enter'){openInValuation('${esc(r.sym)}')}">
+        <td><span class="tk">${esc(r.sym)}</span></td>
+        <td>${r.eq.next?esc(r.eq.next.date)+(dU!=null?` <span style="color:var(--ink-low)">(${dU}d)</span>`:''):'<span style="color:var(--ink-faint)">unscheduled</span>'}</td>
+        <td class="num ${cls(surprise)}">${surprise==null?'—':sign(surprise)+surprise.toFixed(2)+' EPS'}</td>
+        <td>${r.dq.next?esc(r.dq.next.date):'<span style="color:var(--ink-faint)">—</span>'}</td>
+        <td class="num ${cls(divChg)}">${divChg==null?'—':sign(divChg)+divChg.toFixed(1)+'%'}</td>
+        <td><span class="badge ${mosCls}">${r.mos==null?'not valued':sign(r.mos)+r.mos.toFixed(0)+'%'}</span></td>
+      </tr>`;}).join('')}</tbody></table></div>
+    <p class="hint" style="margin-top:10px">Surprise and dividend trend depend on FMP actually having reported the prior period yet — blank means not available, not zero. Click any row to open it in Valuation.</p>`;
+}
+
+let SCREENER_SORT='comp', SCREENER_SECTOR='ALL';
+
+function renderScreener(){
+  const host=document.getElementById('screener-body');
+  const raw=(ST.screener&&ST.screener.rows)||[];
+  if(!raw.length){
+    host.innerHTML='<div class="empty"><b>No screener data</b><p>Hit <b style="color:var(--gold-hi)">Run screener</b> above — it pulls the S&P 500 constituent list, then one trailing-ratios call per company (P/E, P/B, ROE, debt/equity, net margin), and ranks each against the others actually returned.</p></div>';
+    return;
+  }
+  const scored=screenerScores(raw);
+  const sectors=['ALL',...new Set(scored.map(r=>r.sector).filter(Boolean))].sort();
+  const filtered=SCREENER_SECTOR==='ALL'?scored:scored.filter(r=>r.sector===SCREENER_SECTOR);
+  const sortKey={comp:'comp',value:'valScore',quality:'qScore',pe:'pe',roe:'roe'}[SCREENER_SORT]||'comp';
+  const ascending=(sortKey==='pe');
+  const sorted=[...filtered].sort((a,b)=>{
+    const av=a[sortKey], bv=b[sortKey];
+    if(av==null&&bv==null) return 0;
+    if(av==null) return 1; if(bv==null) return -1;
+    return ascending?av-bv:bv-av;
+  });
+  const heur=v=>v==null?{cls:'flat',lbl:'—'}:v>=66?{cls:'pos',lbl:'Top third'}:v<=34?{cls:'neg',lbl:'Bottom third'}:{cls:'warn',lbl:'Middle'};
+
+  const controls=`<div style="display:flex;gap:9px;flex-wrap:wrap;margin-bottom:12px">
+    <select onchange="SCREENER_SORT=this.value;renderScreener()">
+      <option value="comp" ${SCREENER_SORT==='comp'?'selected':''}>Sort: Composite</option>
+      <option value="value" ${SCREENER_SORT==='value'?'selected':''}>Sort: Value</option>
+      <option value="quality" ${SCREENER_SORT==='quality'?'selected':''}>Sort: Quality</option>
+      <option value="pe" ${SCREENER_SORT==='pe'?'selected':''}>Sort: P/E (cheapest first)</option>
+      <option value="roe" ${SCREENER_SORT==='roe'?'selected':''}>Sort: ROE</option>
+    </select>
+    <select onchange="SCREENER_SECTOR=this.value;renderScreener()">
+      ${sectors.map(s=>`<option value="${esc(s)}" ${SCREENER_SECTOR===s?'selected':''}>${s==='ALL'?'All sectors':esc(s)}</option>`).join('')}
+    </select>
+  </div>`;
+
+  host.innerHTML=`${controls}<div style="overflow-x:auto"><table>
+    <thead><tr>
+      <th data-tip="50% Value + 50% Quality, ranked against the other companies pulled — not an absolute score.">Composite</th>
+      <th>Ticker</th><th>Sector</th>
+      <th data-tip="Trailing twelve-month P/E.">P/E</th>
+      <th data-tip="Trailing twelve-month P/B.">P/B</th>
+      <th data-tip="Trailing twelve-month return on equity.">ROE</th>
+      <th data-tip="Trailing twelve-month debt/equity.">D/E</th>
+      <th data-tip="Trailing twelve-month net margin.">Net margin</th>
+      <th data-tip="Trailing twelve-month dividend yield.">Div yield</th>
+    </tr></thead>
+    <tbody>${sorted.map(r=>{
+      const h=heur(r.comp);
+      return `<tr class="clk" tabindex="0" role="button" aria-label="Open ${esc(r.symbol)} in Valuation" onclick="openInValuation('${esc(r.symbol)}')" onkeydown="if(event.key==='Enter'){openInValuation('${esc(r.symbol)}')}">
+        <td><span class="badge ${h.cls}" data-tip="Composite ${r.comp==null?'—':r.comp.toFixed(0)}/100 — Value ${r.valScore==null?'—':r.valScore.toFixed(0)}, Quality ${r.qScore==null?'—':r.qScore.toFixed(0)} (percentile vs. the other companies pulled).">${r.comp==null?'—':r.comp.toFixed(0)}</span></td>
+        <td><span class="tk">${esc(r.symbol)}</span> <span style="color:var(--ink-low);font-size:11.5px">${esc(r.name)}</span></td>
+        <td style="color:var(--ink-mid);font-size:11.5px">${esc(r.sector)}</td>
+        <td class="num">${r.pe==null?'—':r.pe.toFixed(1)}</td>
+        <td class="num">${r.pb==null?'—':r.pb.toFixed(1)}</td>
+        <td class="num ${cls(r.roe)}">${r.roe==null?'—':(r.roe*100).toFixed(1)+'%'}</td>
+        <td class="num">${r.de==null?'—':r.de.toFixed(2)}</td>
+        <td class="num ${cls(r.nm)}">${r.nm==null?'—':(r.nm*100).toFixed(1)+'%'}</td>
+        <td class="num">${r.divYield==null?'—':(r.divYield*100).toFixed(2)+'%'}</td>
+      </tr>`;}).join('')}</tbody></table></div>
+    <p class="hint" style="margin-top:10px">Composite is trailing ratios only (P/E, P/B, ROE, D/E, net margin) — not the full DCF/Graham/multiples engine, which stays on Valuation as the one-ticker deep dive. Click any row to open it there.</p>
+    <div class="asof">${scored.length} of the S&P 500 screened · ${sorted.length} shown${SCREENER_SECTOR==='ALL'?'':' · '+esc(SCREENER_SECTOR)}</div>`;
+}
+
+function openInValuation(symbol){
+  go('val');
+  document.getElementById('val-ticker').value=symbol;
+  lookupCompany();
+}
+
+const APP_NAME='Research';
+
+function renderAll(){ renderScreener(); renderMonitoring(); renderFoot(); renderFreshness(); }
+
+function renderFreshness(){
+  const setLight=(dotId,lblId,iso)=>{
+    const d=document.getElementById(dotId), l=document.getElementById(lblId);
+    if(!d||!l) return;
+    if(!iso){ d.className='dot'; l.textContent='never synced'; return; }
+    d.className='dot '+(freshEnough(iso)?'ok':'warn');
+    l.textContent='synced '+agoStr(iso);
+  };
+  setLight('d-scr-sync','scr-sync-lbl',ST.screenerFetchedAt);
+  setLight('d-mon-sync','mon-sync-lbl',ST.monitoringFetchedAt);
+}
+
+function renderFoot(){
+  document.getElementById('ver').textContent=APP_VERSION;
+  document.getElementById('schema').textContent=SCHEMA;
+  const kb=(bytes()/1024).toFixed(0);
+  document.getElementById('foot-r').textContent=`${kb} KB stored (shared across all IIP apps) · ${ST.screenerFetchedAt?'last screen '+new Date(ST.screenerFetchedAt).toLocaleString():'never screened'}`;
+}
+
+const SW_SRC=`/* IIP Research — app-shell cache only. API responses never cached. */
+const CACHE='iip-research-v${APP_VERSION}';
+const SHELL=['./','./iip-research.html'];
+self.addEventListener('install',e=>{
+  self.skipWaiting();
+  e.waitUntil(caches.open(CACHE).then(c=>c.addAll(SHELL).catch(()=>{})));
+});
+self.addEventListener('activate',e=>{
+  e.waitUntil(caches.keys().then(ks=>Promise.all(ks.filter(k=>k!==CACHE).map(k=>caches.delete(k)))).then(()=>self.clients.claim()));
+});
+self.addEventListener('fetch',e=>{
+  const u=new URL(e.request.url);
+  if(/financialmodelingprep\.com|api\.groq\.com/.test(u.hostname)) return;
+  if(e.request.method!=='GET') return;
+  if(u.origin!==self.location.origin) return;
+  e.respondWith(
+    fetch(e.request).then(r=>{
+      const cp=r.clone();
+      caches.open(CACHE).then(c=>c.put(e.request,cp)).catch(()=>{});
+      return r;
+    }).catch(()=>caches.match(e.request))
+  );
+});`;
+function downloadSW(){ dl('sw.js',SW_SRC,'text/javascript'); toast('sw.js downloaded — drop it beside iip-research.html'); }
+
+function installManifest(){
+  const m={name:'IIP Research',short_name:'IIP Research',start_url:'./iip-research.html',display:'standalone',
+    background_color:'#070d1a',theme_color:'#070d1a',description:'Company valuation and S&P 500 screener',
+    icons:[{src:'data:image/svg+xml,'+encodeURIComponent(
+      `<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512"><rect width="512" height="512" rx="104" fill="#070d1a"/><rect x="74" y="238" width="364" height="36" rx="10" fill="#12233d"/><rect x="316" y="216" width="16" height="80" rx="7" fill="#d4a949"/><rect x="182" y="226" width="10" height="60" rx="5" fill="#5a6f92"/><text x="256" y="404" font-family="Georgia,serif" font-size="112" font-weight="700" fill="#3fd0c9" text-anchor="middle">IIP</text></svg>`
+    ),sizes:'512x512',type:'image/svg+xml',purpose:'any maskable'}]};
+  const l=document.createElement('link');
+  l.rel='manifest';
+  l.href=URL.createObjectURL(new Blob([JSON.stringify(m)],{type:'application/manifest+json'}));
+  document.head.appendChild(l);
+  if('serviceWorker' in navigator && location.protocol.startsWith('http')){
+    navigator.serviceWorker.register('./sw.js').catch(()=>{});
+  }
+}
+
+function saveKeys(){
+  ST.keys.fmp=document.getElementById('k-fmp').value.trim();
+  save();
+  dot('d-fmp',ST.keys.fmp?'warn':'');
+  toast('Key saved to this browser only — shared with Macro and Portfolio automatically.');
+  if(ST.keys.fmp) probeEndpoints();
+}
+
+function go(v,el){
+  document.querySelectorAll('.view').forEach(s=>s.classList.toggle('on',s.id==='v-'+v));
+  document.querySelectorAll('.tab').forEach(t=>t.classList.toggle('on',el?t===el:t.dataset.v===v));
+  window.scrollTo({top:0,behavior:'smooth'});
+}
+
+function boot(){
+  load();
+  document.getElementById('k-fmp').value=ST.keys.fmp||'';
+  dot('d-fmp',ST.keys.fmp?(Object.values(ST.endpoints).some(Boolean)?'ok':'warn'):'');
+  renderAll();
+
+  // Cross-app deep link from Portfolio: iip-research.html?ticker=AAPL
+  const urlTicker=new URLSearchParams(location.search).get('ticker');
+  if(urlTicker){
+    go('val');
+    document.getElementById('val-ticker').value=urlTicker.toUpperCase();
+    lookupCompany();
+  }else if(ST.lastValTicker && ST.companies[ST.lastValTicker]){
+    document.getElementById('val-ticker').value=ST.lastValTicker;
+    renderValuation(ST.lastValTicker);
+  }
+
+  installManifest();
+  if(!ST.keys.fmp) go('set');
+}
+document.addEventListener('DOMContentLoaded',boot);
+
+</script>
+</body>
+</html>
