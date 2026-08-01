@@ -1388,9 +1388,12 @@ async function refreshAll(){
           try{
             const rows=asArr(await fmp(epPath('econ',name)));
             if(rows.length){
-              ST.series[c.id]=sortNewestFirst(rows.map(r=>({d:r.date,v:+r.value})).filter(r=>Number.isFinite(r.v)));
-              ST.meta[c.id]={asof:rows[0].date,src:'FMP · '+name,resolved:true};
-              return;
+              const sorted=sortNewestFirst(rows.map(r=>({d:r.date,v:+r.value})).filter(r=>Number.isFinite(r.v)));
+              if(sorted.length){
+                ST.series[c.id]=sorted;
+                ST.meta[c.id]={asof:sorted[0].d,src:'FMP · '+name,resolved:true};
+                return;
+              }
             }
           }catch(e){}
         }
@@ -1567,7 +1570,8 @@ async function runCycle(){
   const breadth=sectorBreadth();
   try{
     const j=await groq('/chat/completions',{
-      model:ST.model, max_tokens:1100, temperature:0.25, reasoning_effort:'low',
+      model:ST.model, max_tokens:1400, temperature:0.25, reasoning_effort:'low',
+      response_format:{type:'json_object'},
       messages:[
         {role:'system',content:'You are a macro strategist classifying the business cycle from supplied indicator data only. Respond with ONLY a raw JSON object, no markdown fences, no text outside the JSON. Schema: {"stage":one of "Early Expansion"|"Mid Expansion"|"Late Expansion"|"Slowdown"|"Contraction"|"Recovery","confidence":integer 0-100,"pillars":[{"pillar":string,"read":one of "Bullish"|"Neutral"|"Risk-Off","why":string under 15 words}],"drivers":[string under 12 words, max 4],"watch":[string under 12 words, max 3],"summary":string, 2-3 sentences, plain prose}. Rules: base every claim only on the supplied data; if a pillar has thin coverage (fewer than half its indicators present) say so in "why" rather than inferring from silence; confidence should be lower when coverage is thin or pillars contradict each other; never give investment advice, price targets, or position sizing; this is a probabilistic read for a human decision-maker, not a directive.'},
         {role:'user',content:'Pillar data (percentiles are 0-100, already sign-adjusted so 100 = most supportive of risk assets):\n'+JSON.stringify(pillarData)+'\n\nSector breadth: '+JSON.stringify(breadth)}
