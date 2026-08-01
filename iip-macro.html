@@ -801,7 +801,7 @@ async function probeEndpoints(){
 function epPath(k,q){
   const base=ST.endpoints[k]; if(!base) return null;
   if(k==='econ')  return base.includes('stable')?`${base}?name=${q}&from=1990-01-01`:`${base}?name=${q}&from=1990-01-01`;
-  if(k==='curve') return base;
+  if(k==='curve') return `${base}?from=1990-01-01`;
   if(k==='quote') return base.includes('stable')?`${base}?symbol=${q}`:`${base}/${q}`;
   if(k==='hist')  return base.includes('stable')?`${base}?symbol=${q}&from=2006-01-01`:`${base}/${q}?from=2006-01-01`;
   return null;
