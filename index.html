@@ -565,6 +565,18 @@ html[data-mode="light"][data-accent="amber"]{
 const SCHEMA='iip_v1';
 const APP_VERSION='2.0.0', BUILD_DATE='2026-08-01';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
+function timeout(p,ms,lbl){ return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error((lbl||'request')+' timed out')),ms))]); }
+const clean=t=>String(t||'').replace(/<think>[\s\S]*?<\/think>/gi,'')
+  .replace(/^thinking process:[\s\S]*?(?=\n{2,})/i,'').trim();
+async function groq(path,body){
+  if(!ST.keys||!ST.keys.ai) throw new Error('No Groq key');
+  const opt={headers:{'Authorization':'Bearer '+ST.keys.ai}};
+  if(body){ opt.method='POST'; opt.headers['Content-Type']='application/json'; opt.body=JSON.stringify(body); }
+  const r=await timeout(fetch('https://api.groq.com/openai/v1'+path,opt),40000,'Groq');
+  const j=await r.json();
+  if(!r.ok) throw new Error(j?.error?.message||('HTTP '+r.status));
+  return j;
+}
 function agoStr(iso){
   if(!iso) return 'never';
   const s=Math.round((Date.now()-Date.parse(iso))/1000);
@@ -620,7 +632,17 @@ function onSearchInput(){
   SEARCH_SEL=-1;
   if(!q){ host.style.display='none'; host.innerHTML=''; return; }
   const hits=SECTIONS.filter(s=>s.label.toLowerCase().includes(q)||s.friendly.toLowerCase().includes(q));
-  if(!hits.length){ host.style.display='block'; host.innerHTML='<div class="search-hit" style="cursor:default"><span class="sh-desc">No matches \u2014 try a different word.</span></div>'; return; }
+  if(!hits.length){
+    const rawQ=document.getElementById('search-input').value.trim();
+    PENDING_AI_QUERY=rawQ;
+    host.style.display='block';
+    host.innerHTML=`<div class="search-hit" style="cursor:default"><span class="sh-desc">No direct match for "${esc(rawQ)}".</span></div>
+      <div class="search-hit" onclick="aiSearchFallback()">
+        <span class="sh-app">ai</span><span class="sh-lbl">Ask AI to find it</span>
+        <span class="sh-desc">Describe what you're looking for in your own words \u2014 Groq will match it against every section, or say honestly if IIP doesn't have it.</span>
+      </div>`;
+    return;
+  }
   host.style.display='block';
   host.innerHTML=hits.slice(0,8).map((s,i)=>{
     const href=sectionHref(s);
@@ -628,6 +650,51 @@ function onSearchInput(){
     return `<div class="search-hit" data-i="${i}" ${attr}>
       <span class="sh-app">${esc(s.app)}</span><span class="sh-lbl">${esc(s.label)}</span>
       <span class="sh-desc">${esc(s.friendly)}</span>
+    </div>`;
+  }).join('');
+}
+let PENDING_AI_QUERY='';
+async function aiSearchFallback(){
+  const query=PENDING_AI_QUERY;
+  const host=document.getElementById('search-results');
+  if(!ST.keys||!ST.keys.ai){
+    host.innerHTML='<div class="search-hit" style="cursor:default"><span class="sh-desc">No Groq key set yet \u2014 add one in Settings on any of the three apps (Macro, Research, or Portfolio), it\u2019s shared here automatically.</span></div>';
+    return;
+  }
+  host.innerHTML='<div class="search-hit" style="cursor:default"><span class="sh-desc"><span class="spin" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:6px"></span>Asking AI\u2026</span></div>';
+  try{
+    const sectionsList=SECTIONS.map(s=>({label:s.label,app:s.app,desc:s.friendly}));
+    const j=await groq('/chat/completions',{
+      model:ST.model||'openai/gpt-oss-120b', max_tokens:350, temperature:0.2, reasoning_effort:'low',
+      response_format:{type:'json_object'},
+      messages:[
+        {role:'system',content:'You help a user find the right section of a personal investing tool called IIP, given a list of sections (which app each lives in, and what it does) and the user\u2019s query in their own words, which may not use the exact terminology in the list. Respond with ONLY a raw JSON object, no markdown fences: {"matches":[{"label":string exactly matching one from the list,"reason":string under 15 words}],"none":boolean}. Pick up to 3 matches, best first, ONLY ones that genuinely fit \u2014 a wrong guess is worse than admitting nothing fits. If truly nothing in the list matches the query\u2019s intent, set none:true and matches:[].'},
+        {role:'user',content:'Sections:\n'+JSON.stringify(sectionsList)+'\n\nUser is looking for: "'+query+'"'}
+      ]
+    });
+    const raw=clean(j.choices?.[0]?.message?.content||'');
+    const m=raw.replace(/```json|```/g,'').trim().match(/\{[\s\S]*\}/);
+    if(!m) throw new Error('Model did not return parseable JSON');
+    const parsed=JSON.parse(m[0]);
+    renderAISearchResult(parsed,query);
+  }catch(e){
+    host.innerHTML=`<div class="search-hit" style="cursor:default"><span class="sh-desc">AI search failed: ${esc(e.message)}</span></div>`;
+  }
+}
+function renderAISearchResult(parsed,query){
+  const host=document.getElementById('search-results');
+  const matches=(parsed.matches||[]).map(m=>({...m,section:SECTIONS.find(s=>s.label===m.label)})).filter(m=>m.section);
+  if(parsed.none||!matches.length){
+    host.innerHTML=`<div class="search-hit" style="cursor:default"><span class="sh-lbl">No fit found</span><span class="sh-desc">AI checked "${esc(query)}" against every section and honestly came up empty \u2014 IIP likely doesn't have this yet.</span></div>`;
+    return;
+  }
+  host.innerHTML=matches.map(m=>{
+    const s=m.section;
+    const href=sectionHref(s);
+    const attr=href?`onclick="location.href='${href}'"`:`onclick="scrollToSection('${s.scrollTo}');closeSearch()"`;
+    return `<div class="search-hit" ${attr}>
+      <span class="sh-app">${esc(s.app)}</span><span class="sh-lbl">${esc(s.label)}</span>
+      <span class="sh-desc">${esc(m.reason)}</span>
     </div>`;
   }).join('');
 }
@@ -737,7 +804,7 @@ const ROADMAP=[
   {id:'reports', phase:'extra', title:'Saved Reports + backup prompts', status:'done',
     note:'Save Report on Valuation freezes a true point-in-time snapshot — price, fair value range, MOS, quality/certainty, call analysis — into a directory on Home (expand, download as JSON, delete). Separately, a dismissible banner nudges toward exporting a backup once data is >50KB and the last export is over a week old.'},
   {id:'search-info', phase:'extra', title:'Search & Info', status:'done',
-    note:'Type-ahead search on Home jumps straight to any section across all three apps via a shared ?tab= deep link. The same index of sections, in plain language, powers a separate Info modal — one list, two surfaces, so they can\u2019t drift out of sync with each other.'},
+    note:'Type-ahead search on Home jumps straight to any section across all three apps via a shared ?tab= deep link. The same index of sections, in plain language, powers a separate Info modal — one list, two surfaces, so they can\u2019t drift out of sync with each other. When local search finds nothing, an Ask AI fallback sends the query plus the full section list to Groq, which either points to the best-fitting section(s) with a one-line reason or honestly says nothing fits \u2014 a wrong guess is treated as worse than admitting IIP doesn\u2019t have it yet.'},
   {id:'price-technicals', phase:'extra', title:'Price chart + technical signals', status:'done',
     note:'Ported the chart engine from Macro (Sectors/Indicators) into Research — same lookahead-safe range anchoring, same rendering, now driven by the same FMP hist endpoint already proven on Sector/VIX charts, not a new data source. Technical Signals card computes moving-average cross (golden/death, only flagged if it happened in the last ~5 sessions), 14-day RSI, and 52-week range position \u2014 standard arithmetic on price history. Deliberately NOT chart-pattern recognition (head-and-shoulders, triangles) \u2014 that\u2019s a research problem, not something a heuristic does honestly, and it isn\u2019t built here.'},
   {id:'portfolio-history', phase:'extra', title:'Portfolio value-over-time chart', status:'todo',
