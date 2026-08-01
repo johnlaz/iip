@@ -532,7 +532,7 @@ html[data-mode="light"][data-accent="amber"]{
 <div class="toast glass" id="toast"></div>
 <script>
 "use strict";
-const APP_VERSION='1.3.0', SCHEMA='iip_v1';
+const APP_VERSION='2.0.0', BUILD_DATE='2026-08-01', SCHEMA='iip_v1';
 
 
 /* staleness tolerance in days, by frequency */
@@ -1154,7 +1154,7 @@ function checkBackupPrompt(){
 }
 
 function renderFoot(){
-  document.getElementById('ver').textContent=APP_VERSION;
+  document.getElementById('ver').textContent=APP_VERSION+' · '+BUILD_DATE;
   document.getElementById('schema').textContent=SCHEMA;
   const kb=(bytes()/1024).toFixed(0);
   document.getElementById('foot-r').textContent=`${kb} KB stored (shared across all IIP apps) · ${ST.portfolioFetchedAt?'last priced '+new Date(ST.portfolioFetchedAt).toLocaleString():'never priced'}`;

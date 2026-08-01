@@ -561,7 +561,7 @@ html[data-mode="light"][data-accent="amber"]{
 </div>
 <script>
 "use strict";
-const APP_VERSION='1.3.0', SCHEMA='iip_v1';
+const APP_VERSION='2.0.0', BUILD_DATE='2026-08-01', SCHEMA='iip_v1';
 
 /* staleness tolerance in days, by frequency */
 
@@ -1062,7 +1062,7 @@ function renderValuation(ticker){
       <div class="card-hd"><h3 data-tip="Standard moving-average, RSI and 52-week-range arithmetic on daily price history — the same hist endpoint already backing Sector and VIX charts in Macro, not a new data source.">Price &amp; Technicals</h3>
         <button class="btn sm gold" onclick="openPriceChart('${esc(p.symbol)}')">View Chart</button>
       </div>
-      <div id="tech-body"><p class="hint">Loading…</p></div>
+      <div id="tech-body"><p class="hint">Hit View Chart to load price history and signals.</p></div>
     </div>
 
     <div style="display:flex;justify-content:flex-end;margin-top:13px">
@@ -1229,6 +1229,10 @@ async function fetchCompany(ticker){
   // Each statement fetched independently — a plan-tier block (HTTP 402) on
   // one shouldn't take the whole lookup down. Step down to limit=1 once if
   // limit=5 itself gets rejected, since some tiers only allow the latest period.
+  // Deliberately kept to 6 concurrent calls, not 7 — price history used to be
+  // bundled in here too, but that pushed some FMP plans' burst rate limit and
+  // broke the whole lookup, fundamentals included. It's fetched lazily now,
+  // only when the chart is actually opened (see openPriceChart).
   const byRawDateDesc=(a,b)=>String(b.date||'').localeCompare(String(a.date||''));
   async function pull(kind){
     try{ return {rows:asArr(await fmp(fundaPath(kind,ticker,5))).sort(byRawDateDesc),err:null}; }
@@ -1240,30 +1244,18 @@ async function fetchCompany(ticker){
       return {rows:[],err:e.message};
     }
   }
-  // Price history — same hist endpoint that already backs Sector/VIX charts
-  // in Macro, not a new data source. Failure here doesn't block the lookup:
-  // DCF/Graham/multiples don't need it, only the chart and technical signals do.
-  async function pullPrice(){
-    try{
-      if(!ST.endpoints.hist) await probeEndpoints();
-      if(!ST.endpoints.hist) return {rows:[],err:'Historical price endpoint unresolved.'};
-      const rows=asArr(await fmp(epPath('hist',ticker)));
-      const sorted=sortNewestFirst(rows.map(r=>({d:r.date,v:+r.close})).filter(r=>Number.isFinite(r.v)));
-      return {rows:sorted,err:sorted.length?null:'No usable price history returned.'};
-    }catch(e){ return {rows:[],err:e.message}; }
-  }
-  const [profileR,income,balance,cashflow,ratios,keymetrics,priceR]=await Promise.all([
+  const [profileR,income,balance,cashflow,ratios,keymetrics]=await Promise.all([
     fmp(fundaPath('profile',ticker)).then(d=>({rows:asArr(d),err:null})).catch(e=>({rows:[],err:e.message})),
-    pull('income'), pull('balance'), pull('cashflow'), pull('ratios'), pull('keymetrics'), pullPrice()
+    pull('income'), pull('balance'), pull('cashflow'), pull('ratios'), pull('keymetrics')
   ]);
   const p=profileR.rows[0]||null;
   if(!p && !income.rows.length) throw new Error(`No fundamentals returned for ${ticker} — check the symbol, or your FMP plan may not cover this endpoint (${income.err||profileR.err||'unknown error'}).`);
   const errors={};
-  [['profile',profileR],['income',income],['balance',balance],['cashflow',cashflow],['ratios',ratios],['keymetrics',keymetrics],['priceHistory',priceR]]
+  [['profile',profileR],['income',income],['balance',balance],['cashflow',cashflow],['ratios',ratios],['keymetrics',keymetrics]]
     .forEach(([k,r])=>{ if(r.err&&!r.rows.length) errors[k]=r.err; });
   return {
     profile:p, income:income.rows, balance:balance.rows, cashflow:cashflow.rows,
-    ratios:ratios.rows, keymetrics:keymetrics.rows, priceHistory:priceR.rows, errors,
+    ratios:ratios.rows, keymetrics:keymetrics.rows, priceHistory:[], errors,
     fetchedAt:new Date().toISOString()
   };
 }
@@ -1371,6 +1363,7 @@ async function openPriceChart(symbol){
     <div class="chart-legend" id="chart-legend"></div>
     <div class="asof" style="margin-top:14px">${hist.length} sessions cached · as of ${esc(hist[0].d)} · FMP</div>`;
   renderModalChart();
+  renderTechnicals(symbol);
 }
 function renderModalChart(){
   if(!MODAL_CTX) return;
@@ -1433,7 +1426,9 @@ function renderTechnicals(symbol){
   const co=ST.companies[symbol];
   const t=co&&co.priceHistory&&co.priceHistory.length?computeTechnicals(co.priceHistory):null;
   if(!t){
-    host.innerHTML='<p class="hint">Not enough price history to compute signals.</p>';
+    host.innerHTML=co&&co.priceHistory&&co.priceHistory.length
+      ? '<p class="hint">Not enough price history to compute signals.</p>'
+      : '<p class="hint">Hit <b style="color:var(--gold-hi)">View Chart</b> to load price history — this also fills in the signals below.</p>';
     return;
   }
   const crossLbl={golden:'Golden Cross',death:'Death Cross',above:'Above 200D',below:'Below 200D'};
@@ -1773,7 +1768,7 @@ function checkBackupPrompt(){
 }
 
 function renderFoot(){
-  document.getElementById('ver').textContent=APP_VERSION;
+  document.getElementById('ver').textContent=APP_VERSION+' · '+BUILD_DATE;
   document.getElementById('schema').textContent=SCHEMA;
   const kb=(bytes()/1024).toFixed(0);
   document.getElementById('foot-r').textContent=`${kb} KB stored (shared across all IIP apps) · ${ST.screenerFetchedAt?'last screen '+new Date(ST.screenerFetchedAt).toLocaleString():'never screened'}`;

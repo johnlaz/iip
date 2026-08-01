@@ -475,6 +475,9 @@ html[data-mode="light"][data-accent="amber"]{
     <h1>Investment <em>Intelligence</em></h1>
     <p class="tagline">Three linked apps, one shared dataset. Enter your keys once — they carry across all three, same origin, same localStorage.</p>
   </div>
+  <div class="pill" style="flex:none" data-tip="Maintained by hand each session — no build pipeline here. Compare this against what's showing in your other three apps' footers; they should all match.">
+    <i class="dot ok"></i>v<span id="hdr-version"></span>
+  </div>
 </header>
 
 <div class="search-row">
@@ -552,7 +555,7 @@ html[data-mode="light"][data-accent="amber"]{
 <div class="glass card" style="margin-top:22px" id="plan-card"></div>
 
 <footer style="border:none">
-  <span>IIP · shared schema <span id="schema"></span></span>
+  <span>IIP · v<span id="ver-foot"></span> · shared schema <span id="schema"></span></span>
   <span id="foot-r"></span>
 </footer>
 </div>
@@ -560,6 +563,7 @@ html[data-mode="light"][data-accent="amber"]{
 <script>
 "use strict";
 const SCHEMA='iip_v1';
+const APP_VERSION='2.0.0', BUILD_DATE='2026-08-01';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function agoStr(iso){
   if(!iso) return 'never';
@@ -669,6 +673,8 @@ let ST={};
 try{ const raw=localStorage.getItem(SCHEMA); if(raw) ST=JSON.parse(raw); }catch(e){}
 
 document.getElementById('schema').textContent=SCHEMA;
+document.getElementById('hdr-version').textContent=APP_VERSION+' · '+BUILD_DATE;
+document.getElementById('ver-foot').textContent=APP_VERSION;
 try{ document.getElementById('foot-r').textContent=(new Blob([localStorage.getItem(SCHEMA)||'']).size/1024).toFixed(0)+' KB stored'; }catch(e){}
 
 if(!ST.keys || !ST.keys.fmp){
