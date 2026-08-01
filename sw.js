@@ -2,7 +2,7 @@
    API responses are NEVER cached: a stale reading that looks live is worse
    than no reading at all. Bump CACHE's version suffix to force a refresh
    after deploying changes to any of the shell files below. */
-const CACHE = 'iip-shell-v1';
+const CACHE = 'iip-shell-v1.5';
 const SHELL = [
   './',
   './index.html',
