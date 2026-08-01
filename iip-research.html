@@ -85,6 +85,11 @@ button{font-family:var(--body);cursor:pointer;border:0;background:none;color:inh
 .btn:hover{border-color:var(--teal);color:var(--teal-hi);background:rgba(30,58,88,.7)}
 .btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 .btn.gold{border-color:rgba(212,169,73,.42);color:var(--gold-hi);background:var(--gold-dim)}
+.btn.ai{border:1px solid var(--teal);color:var(--teal-hi);
+  background:linear-gradient(135deg,var(--teal-dim),var(--gold-dim));
+  font-weight:700;box-shadow:0 0 0 rgba(63,208,201,0);transition:box-shadow .18s,transform .18s}
+.btn.ai::before{content:'✨ ';}
+.btn.ai:hover{box-shadow:0 0 16px rgba(63,208,201,.28);transform:translateY(-1px)}
 .btn.gold:hover{border-color:var(--gold);background:rgba(212,169,73,.2)}
 .btn:disabled{opacity:.35;cursor:default}
 .btn.sm{padding:6px 11px;font-size:10px}
@@ -435,13 +440,13 @@ html[data-mode="light"][data-accent="amber"]{
 
 <div id="backup-banner-slot"></div>
 <nav class="tabs">
-  <button class="tab" data-v="val" onclick="go('val',this)" data-tip="Single-company intrinsic value range from DCF, Graham and historical multiples, plus a quality/certainty read.">Valuation</button>
+  <button class="tab on" data-v="val" onclick="go('val',this)" data-tip="Single-company intrinsic value range from DCF, Graham and historical multiples, plus a quality/certainty read.">Valuation</button>
   <button class="tab" data-v="scr" onclick="go('scr',this)" data-tip="S&amp;P 500 ranked on trailing P/E, P/B, ROE, debt/equity and margin — a first-pass scan, not the full valuation engine.">Screener</button>
   <button class="tab" data-v="mon" onclick="go('mon',this)" data-tip="Earnings and dividend dates for your watchlist and Portfolio holdings, plus a margin-of-safety flag from Valuation's cache.">Monitor</button>
   <button class="tab" data-v="set" onclick="go('set',this)" data-tip="API keys, endpoint status, data export.">Settings</button>
 </nav>
 
-<section class="view" id="v-val">
+<section class="view on" id="v-val">
   <div class="glass card" style="margin-bottom:13px">
     <div class="card-hd"><h3 data-tip="Pulls profile, 5yr annual income/balance/cash flow statements and ratios for one company. Falls back to the latest single year for any statement your FMP plan restricts to fewer years.">Company Lookup</h3><span class="k">FMP · annual, 5yr</span></div>
     <div style="display:flex;gap:8px;flex-wrap:wrap">
@@ -561,7 +566,7 @@ html[data-mode="light"][data-accent="amber"]{
 </div>
 <script>
 "use strict";
-const APP_VERSION='2.0.0', BUILD_DATE='2026-08-01', SCHEMA='iip_v1';
+const APP_VERSION='2.2.0', BUILD_DATE='2026-08-01', SCHEMA='iip_v1';
 
 /* staleness tolerance in days, by frequency */
 
@@ -1065,18 +1070,73 @@ function renderValuation(ticker){
       <div id="tech-body"><p class="hint">Hit View Chart to load price history and signals.</p></div>
     </div>
 
+    <div class="glass card" style="margin-top:13px">
+      <div class="card-hd"><h3 data-tip="Reads the fair value range, quality/certainty scores, and technicals together for this ticker, and explains what it means in plain language. Never tells you to buy, sell, or hold — that stays your call.">AI Read</h3>
+        <button class="btn sm ai" id="btn-val-ai-read" onclick="runValuationAIRead('${esc(p.symbol)}')">Generate AI Read</button>
+      </div>
+      <div id="val-ai-read-body"></div>
+    </div>
+
     <div style="display:flex;justify-content:flex-end;margin-top:13px">
       <button class="btn sm gold" onclick="saveReport('${esc(p.symbol)}')" data-tip="Freezes a point-in-time snapshot of everything above — fair value range, quality/certainty, and the call analysis if run. Viewable in the Reports directory on Home.">Save Report</button>
     </div>
 
     <div class="glass card" style="margin-top:13px" id="call-analysis-card">
       <div class="card-hd"><h3 data-tip="Fetches the most recent earnings call transcript and sends it to Groq for a structured read — guidance, risks, tone, notable quotes. Labeled AI synthesis throughout, same as the macro Cycle Read: never a silent input to anything else in this app.">Earnings Call Analysis</h3>
-        <button class="btn sm gold" id="btn-call-analyze" onclick="analyzeEarningsCall('${esc(p.symbol)}')">Analyze latest call</button>
+        <button class="btn sm ai" id="btn-call-analyze" onclick="analyzeEarningsCall('${esc(p.symbol)}')">Analyze latest call</button>
       </div>
       <div id="call-analysis-body"><p class="hint">No call analyzed yet for this ticker.</p></div>
     </div>`;
   renderCallAnalysis(ticker);
   renderTechnicals(ticker);
+  renderValuationAIRead(ticker);
+}
+async function runValuationAIRead(symbol){
+  const btn=document.getElementById('btn-val-ai-read');
+  const host=document.getElementById('val-ai-read-body');
+  if(!ST.keys||!ST.keys.ai){ toast('Add a Groq key in Settings first'); go('set'); return; }
+  const co=ST.companies[symbol];
+  if(!co){ toast('Nothing loaded to read yet'); return; }
+  let v; try{ v=buildValuation(co,co.assumptions); }catch(e){ toast('Could not build a read: '+e.message); return; }
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  host.innerHTML='<div class="loading" style="text-align:center;padding:20px 0"><span class="spin"></span> reading the numbers\u2026</div>';
+  try{
+    const tech=co.priceHistory&&co.priceHistory.length?computeTechnicals(co.priceHistory):null;
+    const data={
+      symbol, price:v.price, fairValueRange:v.range, marginOfSafety:v.mos,
+      methods:v.methods, quality:v.quality, certainty:v.certainty,
+      roic:v.roic, debtToEquity:v.de, interestCoverage:v.intCov,
+      technicals:tech?{rsi14:tech.rsi14,maTrend:tech.cross,pctFromHigh:tech.pctFromHigh,pctFromLow:tech.pctFromLow}:null
+    };
+    const j=await groq('/chat/completions',{
+      model:ST.model||'openai/gpt-oss-120b', max_tokens:700, temperature:0.3, reasoning_effort:'low',
+      messages:[
+        {role:'system',content:'You are reading a single company\u2019s valuation data for the person researching it, inside their own tool. Given fair-value range (from DCF/Graham/multiples), margin of safety, quality/certainty scores (0-100, built from ROIC/debt/coverage/cash-flow consistency), and technicals if available, do three things in plain language: (1) summarize what the numbers actually say together, not just restate them; (2) flag anything easy to overlook — a wide range signaling real uncertainty, quality and price disagreeing, thin certainty behind a confident-looking number; (3) raise questions worth digging into further. Never tell them to buy, sell, or hold, and never give a price target beyond what\u2019s already in the data \u2014 that stays their call. 3-5 short paragraphs, plain language.'},
+        {role:'user',content:JSON.stringify(data)}
+      ]
+    });
+    const text=clean(j.choices?.[0]?.message?.content||'');
+    if(!text) throw new Error('Groq returned an empty read.');
+    if(co){ co.aiRead={text,asof:new Date().toISOString(),model:ST.model||'openai/gpt-oss-120b'}; save(); }
+    renderValuationAIRead(symbol);
+  }catch(e){
+    host.innerHTML=`<div class="note warn" style="border-radius:var(--r)">${esc(e.message)}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='Generate AI Read';
+  }
+}
+function renderValuationAIRead(symbol){
+  const host=document.getElementById('val-ai-read-body');
+  if(!host) return;
+  const co=ST.companies[symbol];
+  const r=co&&co.aiRead;
+  if(!r){
+    host.innerHTML='<p class="hint">No AI Read yet \u2014 hit <b style="color:var(--gold-hi)">Generate AI Read</b> above.</p>';
+    return;
+  }
+  const body=esc(r.text).replace(/\n/g,'<br>');
+  host.innerHTML=`<div class="asof" style="margin-bottom:8px">Generated ${agoStr(r.asof)} \u00b7 ${esc(r.model)} \u00b7 AI synthesis, not advice</div>
+    <div style="font-size:13px;line-height:1.7">${body}</div>`;
 }
 
 function onValSlider(){

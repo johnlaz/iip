@@ -85,6 +85,11 @@ button{font-family:var(--body);cursor:pointer;border:0;background:none;color:inh
 .btn:hover{border-color:var(--teal);color:var(--teal-hi);background:rgba(30,58,88,.7)}
 .btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 .btn.gold{border-color:rgba(212,169,73,.42);color:var(--gold-hi);background:var(--gold-dim)}
+.btn.ai{border:1px solid var(--teal);color:var(--teal-hi);
+  background:linear-gradient(135deg,var(--teal-dim),var(--gold-dim));
+  font-weight:700;box-shadow:0 0 0 rgba(63,208,201,0);transition:box-shadow .18s,transform .18s}
+.btn.ai::before{content:'✨ ';}
+.btn.ai:hover{box-shadow:0 0 16px rgba(63,208,201,.28);transform:translateY(-1px)}
 .btn.gold:hover{border-color:var(--gold);background:rgba(212,169,73,.2)}
 .btn:disabled{opacity:.35;cursor:default}
 .btn.sm{padding:6px 11px;font-size:10px}
@@ -631,7 +636,7 @@ html[data-mode="light"][data-accent="amber"]{
 </div>
 <script>
 "use strict";
-const APP_VERSION='2.0.0', BUILD_DATE='2026-08-01', SCHEMA='iip_v1';
+const APP_VERSION='2.2.0', BUILD_DATE='2026-08-01', SCHEMA='iip_v1';
 
 
 /* staleness tolerance in days, by frequency */
@@ -1577,7 +1582,7 @@ async function runCycle(){
       model:ST.model, max_tokens:1400, temperature:0.25, reasoning_effort:'low',
       response_format:{type:'json_object'},
       messages:[
-        {role:'system',content:'You are a macro strategist classifying the business cycle from supplied indicator data only. Respond with ONLY a raw JSON object, no markdown fences, no text outside the JSON. Schema: {"stage":one of "Early Expansion"|"Mid Expansion"|"Late Expansion"|"Slowdown"|"Contraction"|"Recovery","confidence":integer 0-100,"pillars":[{"pillar":string,"read":one of "Bullish"|"Neutral"|"Risk-Off","why":string under 15 words}],"drivers":[string under 12 words, max 4],"watch":[string under 12 words, max 3],"summary":string, 2-3 sentences, plain prose}. Rules: base every claim only on the supplied data; if a pillar has thin coverage (fewer than half its indicators present) say so in "why" rather than inferring from silence; confidence should be lower when coverage is thin or pillars contradict each other; never give investment advice, price targets, or position sizing; this is a probabilistic read for a human decision-maker, not a directive.'},
+        {role:'system',content:'You are a macro strategist classifying the business cycle from supplied indicator data only. Respond with ONLY a raw JSON object, no markdown fences, no text outside the JSON. Schema: {"stage":one of "Early Expansion"|"Mid Expansion"|"Late Expansion"|"Slowdown"|"Contraction"|"Recovery","confidence":integer 0-100,"pillars":[{"pillar":string,"read":one of "Bullish"|"Neutral"|"Risk-Off","why":string under 15 words}],"drivers":[string under 12 words, max 4],"watch":[string under 12 words, max 3],"summary":string, 3-4 sentences plain prose \u2014 connect the pillar reads into what this regime typically means for someone weighing how to position, and name one thing worth double-checking that isn\u2019t obvious from the pillar list alone (thin coverage, a pillar quietly contradicting the overall stage, a driver doing most of the work)}. Rules: base every claim only on the supplied data; if a pillar has thin coverage (fewer than half its indicators present) say so in "why" rather than inferring from silence; confidence should be lower when coverage is thin or pillars contradict each other; never give investment advice, price targets, or position sizing; this is a probabilistic read for a human decision-maker, not a directive.'},
         {role:'user',content:'Pillar data (percentiles are 0-100, already sign-adjusted so 100 = most supportive of risk assets):\n'+JSON.stringify(pillarData)+'\n\nSector breadth: '+JSON.stringify(breadth)}
       ]
     });
@@ -1602,14 +1607,14 @@ function renderCycle(loading,err){
     return;
   }
   if(err){
-    host.innerHTML=`<div class="cycle-hd"><h2>Cycle Read</h2><button class="btn sm gold" onclick="runCycle()">Retry</button></div><div class="note warn">${esc(err)}</div>`;
+    host.innerHTML=`<div class="cycle-hd"><h2>Cycle Read</h2><button class="btn sm ai" onclick="runCycle()">Retry</button></div><div class="note warn">${esc(err)}</div>`;
     return;
   }
   const c=ST.cycle;
   if(!c){
     host.innerHTML=`<div class="cycle-hd">
         <h2 data-tip="One Groq call reads all six pillars plus sector breadth and proposes a cycle stage with per-pillar reasoning. It's a labeled, requestable overlay — never a silent input to the percentile scores above.">Cycle Read</h2>
-        <button class="btn gold" onclick="runCycle()">Assess cycle</button>
+        <button class="btn ai" onclick="runCycle()">Assess cycle</button>
       </div>
       <div class="empty" style="padding:30px 14px"><b>No read yet</b><p>Synthesizes the pillars, sector breadth, and their trends into a cycle-stage read with per-pillar reasoning \u2014 the "does this all agree" view. Needs a Groq key and at least one Refresh.</p></div>`;
     return;
@@ -1620,7 +1625,7 @@ function renderCycle(loading,err){
         <div class="eyebrow" style="margin-bottom:3px">AI Cycle Read${stale?' · data has changed since this read':''}</div>
         <div class="stage-badge">${esc(c.stage)}<div class="confmeter" data-tip="Model's own stated confidence \u2014 lower when pillar coverage is thin or pillars disagree."><i style="width:${Math.max(4,Math.min(100,c.confidence||0))}%"></i></div><span class="tile-u">${c.confidence??'—'}% confidence</span></div>
       </div>
-      <button class="btn sm ${stale?'gold':''}" onclick="runCycle()">${stale?'Re-assess':'Refresh read'}</button>
+      <button class="btn sm ai" onclick="runCycle()">${stale?'Re-assess':'Refresh read'}</button>
     </div>
     <p class="brief" style="margin-bottom:4px">${esc(c.summary||'')}</p>
     <div class="pillar-chips">${(c.pillars||[]).map(p=>{

@@ -85,6 +85,11 @@ button{font-family:var(--body);cursor:pointer;border:0;background:none;color:inh
 .btn:hover{border-color:var(--teal);color:var(--teal-hi);background:rgba(30,58,88,.7)}
 .btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 .btn.gold{border-color:rgba(212,169,73,.42);color:var(--gold-hi);background:var(--gold-dim)}
+.btn.ai{border:1px solid var(--teal);color:var(--teal-hi);
+  background:linear-gradient(135deg,var(--teal-dim),var(--gold-dim));
+  font-weight:700;box-shadow:0 0 0 rgba(63,208,201,0);transition:box-shadow .18s,transform .18s}
+.btn.ai::before{content:'✨ ';}
+.btn.ai:hover{box-shadow:0 0 16px rgba(63,208,201,.28);transform:translateY(-1px)}
 .btn.gold:hover{border-color:var(--gold);background:rgba(212,169,73,.2)}
 .btn:disabled{opacity:.35;cursor:default}
 .btn.sm{padding:6px 11px;font-size:10px}
@@ -429,16 +434,17 @@ html[data-mode="light"][data-accent="amber"]{
   </div>
   <div class="hdr-side">
     <span class="pill" data-tip="Green = key set and endpoints resolved. Amber = key saved, not yet probed. Red = probe failed."><i class="dot" id="d-fmp"></i>FMP</span>
+    <span class="pill" data-tip="Powers the AI Read on your holdings."><i class="dot" id="d-ai"></i>GROQ</span>
   </div>
 </header>
 
 <div id="backup-banner-slot"></div>
 <nav class="tabs">
-  <button class="tab" data-v="port" onclick="go('port',this)" data-tip="Holdings, exposure, drift from target, rebalancing flags, and the investment journal.">Portfolio</button>
+  <button class="tab on" data-v="port" onclick="go('port',this)" data-tip="Holdings, exposure, drift from target, rebalancing flags, and the investment journal.">Portfolio</button>
   <button class="tab" data-v="set" onclick="go('set',this)" data-tip="API keys, endpoint status, data export.">Settings</button>
 </nav>
 
-<section class="view" id="v-port">
+<section class="view on" id="v-port">
   <div class="glass card" style="margin-bottom:13px">
     <div class="card-hd"><h3 data-tip="Manual entry — no brokerage connection. Prices refresh on demand via the same profile endpoint Valuation uses.">Holdings</h3>
       <div style="display:flex;align-items:center;gap:9px">
@@ -499,8 +505,15 @@ html[data-mode="light"][data-accent="amber"]{
       </label>
       <input type="password" id="k-fmp" placeholder="required">
     </div>
-    <button class="btn gold" onclick="saveKeys()">Save key</button>
-    <p class="hint">Never leaves this browser. If the Macro app already has a key saved here, it'll show up above automatically — same localStorage, same origin.</p>
+    <div class="fld">
+      <label class="f" style="display:flex;justify-content:space-between;align-items:baseline">
+        <span data-tip="Powers the AI Read on your holdings. Everything else works without it.">Groq API key</span>
+        <a href="https://console.groq.com/keys" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:9.5px;color:var(--teal-hi);text-decoration:none;letter-spacing:.08em" data-tip="Opens Groq's console in a new tab.">GET KEY →</a>
+      </label>
+      <input type="password" id="k-ai" placeholder="gsk_… — optional, for AI Read">
+    </div>
+    <button class="btn gold" onclick="saveKeys()">Save keys</button>
+    <p class="hint">Never leaves this browser. If another app already has a key saved here, it'll show up above automatically — same localStorage, same origin.</p>
   </div>
   <div class="sec-t">Appearance</div>
   <div class="glass card" style="margin-bottom:14px">
@@ -532,7 +545,7 @@ html[data-mode="light"][data-accent="amber"]{
 <div class="toast glass" id="toast"></div>
 <script>
 "use strict";
-const APP_VERSION='2.0.0', BUILD_DATE='2026-08-01', SCHEMA='iip_v1';
+const APP_VERSION='2.2.0', BUILD_DATE='2026-08-01', SCHEMA='iip_v1';
 
 
 /* staleness tolerance in days, by frequency */
@@ -1112,7 +1125,59 @@ function renderPortfolio(){
       :`<p class="hint" style="margin-top:10px">${deployAmt>0?'No underweight positions to deploy into — everyone\u2019s at or above target.':'Enter an amount to see a suggested split across underweight positions.'}</p>`}
   </div>`;
 
-  host.innerHTML=summary+table+deployHtml;
+  const aiReadHtml=`<div class="glass card" style="margin-top:13px">
+    <div class="card-hd"><h3 data-tip="Reads your actual holdings — weights, drift, gain/loss, margin of safety where valued — and explains what it means, flags what's easy to overlook, and raises strategic questions. Never tells you what to buy, sell, or how to size a position — that stays your call.">AI Read</h3>
+      <button class="btn sm ai" id="btn-ai-read" onclick="runPortfolioAIRead()">Generate AI Read</button>
+    </div>
+    <div id="ai-read-body"></div>
+  </div>`;
+
+  host.innerHTML=summary+table+deployHtml+aiReadHtml;
+  renderPortfolioAIRead();
+}
+
+async function runPortfolioAIRead(){
+  const btn=document.getElementById('btn-ai-read');
+  const host=document.getElementById('ai-read-body');
+  if(!ST.keys||!ST.keys.ai){ toast('Add a Groq key in Settings first'); go('set'); return; }
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  host.innerHTML='<div class="loading" style="text-align:center;padding:20px 0"><span class="spin"></span> reading your holdings\u2026</div>';
+  try{
+    const rows=portfolioComputed();
+    const data=rows.map(h=>({symbol:h.symbol,weight:h.weight!=null?+h.weight.toFixed(1):null,
+      target:h.target,drift:h.drift!=null?+h.drift.toFixed(1):null,
+      gainPct:h.gainPct!=null?+h.gainPct.toFixed(1):null,
+      mos:h.mos!=null?+h.mos.toFixed(0):null,flag:h.flag}));
+    const totalMV=rows[0]?.totalMV||0;
+    const j=await groq('/chat/completions',{
+      model:ST.model||'openai/gpt-oss-120b', max_tokens:700, temperature:0.3, reasoning_effort:'low',
+      messages:[
+        {role:'system',content:'You are reading a personal investment portfolio for its owner, inside their own research tool. Given the holdings data (weight = % of portfolio, drift = current weight minus target weight, mos = margin of safety from their own valuation work where available, null means not yet valued), do three things in plain language: (1) summarize what\u2019s actually going on — concentration, biggest positions, overall tilt; (2) flag anything easy to overlook at a glance — an unvalued large position, a concentration risk, a stale target that no longer makes sense, drift that\u2019s been ignored; (3) raise strategic questions worth thinking through, not answers. Never tell them what to buy, sell, or how to size a position — that stays their call, always. 3-5 short paragraphs, plain language, no filler.'},
+        {role:'user',content:`Total portfolio value: ${fmtN(totalMV)} (incl. ${fmtN(ST.portfolio.cash||0)} cash)\n\nHoldings:\n`+JSON.stringify(data)}
+      ]
+    });
+    const text=clean(j.choices?.[0]?.message?.content||'');
+    if(!text) throw new Error('Groq returned an empty read.');
+    ST.portfolioAIRead={text,asof:new Date().toISOString(),model:ST.model||'openai/gpt-oss-120b'};
+    save();
+    renderPortfolioAIRead();
+  }catch(e){
+    host.innerHTML=`<div class="note warn" style="border-radius:var(--r)">${esc(e.message)}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='Generate AI Read';
+  }
+}
+function renderPortfolioAIRead(){
+  const host=document.getElementById('ai-read-body');
+  if(!host) return;
+  const r=ST.portfolioAIRead;
+  if(!r){
+    host.innerHTML='<p class="hint">No AI Read yet — hit <b style="color:var(--gold-hi)">Generate AI Read</b> above.</p>';
+    return;
+  }
+  const body=esc(r.text).replace(/\n/g,'<br>');
+  host.innerHTML=`<div class="asof" style="margin-bottom:8px">Generated ${agoStr(r.asof)} · ${esc(r.model)} · AI synthesis, not advice</div>
+    <div style="font-size:13px;line-height:1.7">${body}</div>`;
 }
 
 const APP_NAME='Portfolio';
@@ -1171,10 +1236,22 @@ function installManifest(){
 
 function saveKeys(){
   ST.keys.fmp=document.getElementById('k-fmp').value.trim();
+  ST.keys.ai=document.getElementById('k-ai').value.trim();
   save();
   dot('d-fmp',ST.keys.fmp?'warn':'');
-  toast('Key saved to this browser only — shared with Macro and Research automatically.');
+  toast('Keys saved to this browser only — shared with Macro and Research automatically.');
   if(ST.keys.fmp) probeEndpoints();
+}
+const clean=t=>String(t||'').replace(/<think>[\s\S]*?<\/think>/gi,'')
+  .replace(/^thinking process:[\s\S]*?(?=\n{2,})/i,'').trim();
+async function groq(path,body){
+  if(!ST.keys||!ST.keys.ai) throw new Error('No Groq key');
+  const opt={headers:{'Authorization':'Bearer '+ST.keys.ai}};
+  if(body){ opt.method='POST'; opt.headers['Content-Type']='application/json'; opt.body=JSON.stringify(body); }
+  const r=await timeout(fetch('https://api.groq.com/openai/v1'+path,opt),40000,'Groq');
+  const j=await r.json();
+  if(!r.ok) throw new Error(j?.error?.message||('HTTP '+r.status));
+  return j;
 }
 
 function go(v,el){
@@ -1287,7 +1364,9 @@ function boot(){
   load();
   applyTheme(); initThemeWatcher(); renderAppearance();
   document.getElementById('k-fmp').value=ST.keys.fmp||'';
+  document.getElementById('k-ai').value=ST.keys.ai||'';
   dot('d-fmp',ST.keys.fmp?(Object.values(ST.endpoints).some(Boolean)?'ok':'warn'):'');
+  dot('d-ai',ST.keys.ai?'warn':'');
   renderAll();
   installManifest();
   initInstallBanner();

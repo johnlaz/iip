@@ -85,6 +85,11 @@ button{font-family:var(--body);cursor:pointer;border:0;background:none;color:inh
 .btn:hover{border-color:var(--teal);color:var(--teal-hi);background:rgba(30,58,88,.7)}
 .btn:focus-visible{outline:2px solid var(--teal);outline-offset:2px}
 .btn.gold{border-color:rgba(212,169,73,.42);color:var(--gold-hi);background:var(--gold-dim)}
+.btn.ai{border:1px solid var(--teal);color:var(--teal-hi);
+  background:linear-gradient(135deg,var(--teal-dim),var(--gold-dim));
+  font-weight:700;box-shadow:0 0 0 rgba(63,208,201,0);transition:box-shadow .18s,transform .18s}
+.btn.ai::before{content:'✨ ';}
+.btn.ai:hover{box-shadow:0 0 16px rgba(63,208,201,.28);transform:translateY(-1px)}
 .btn.gold:hover{border-color:var(--gold);background:rgba(212,169,73,.2)}
 .btn:disabled{opacity:.35;cursor:default}
 .btn.sm{padding:6px 11px;font-size:10px}
@@ -440,6 +445,29 @@ html[data-mode="light"][data-accent="amber"]{
 .search-hit .sh-app{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-hi)}
 .search-hit .sh-lbl{font-weight:600;font-size:13px;margin-left:8px}
 .search-hit .sh-desc{display:block;font-size:11.5px;color:var(--ink-mid);margin-top:2px;line-height:1.4}
+
+.ai-chat-panel{position:absolute;top:calc(100% + 6px);left:0;right:56px;z-index:41;
+  background:var(--panel-hi);backdrop-filter:blur(20px) saturate(140%);border:1px solid var(--teal);
+  border-radius:var(--r-sm);box-shadow:0 14px 40px rgba(0,0,0,.45);
+  display:flex;flex-direction:column;max-height:min(480px,70vh)}
+.ai-chat-hd{display:flex;justify-content:space-between;align-items:center;padding:10px 14px;border-bottom:1px solid var(--edge);flex:none}
+.ai-chat-hd .t{font-family:var(--disp);font-weight:700;font-style:italic;color:var(--teal-hi);font-size:14px}
+.ai-chat-hd button{background:none;border:none;color:var(--ink-low);cursor:pointer;font-size:15px;padding:2px 6px}
+.ai-chat-hd button:hover{color:var(--ink)}
+.ai-chat-messages{flex:1;overflow-y:auto;padding:14px;display:flex;flex-direction:column;gap:10px;min-height:100px}
+.ai-msg{max-width:88%;padding:9px 12px;border-radius:12px;font-size:12.5px;line-height:1.55}
+.ai-msg.user{align-self:flex-end;background:var(--gold-dim);border:1px solid rgba(212,169,73,.35);color:var(--ink);border-bottom-right-radius:3px}
+.ai-msg.ai{align-self:flex-start;background:var(--teal-dim);border:1px solid rgba(63,208,201,.35);color:var(--ink);border-bottom-left-radius:3px}
+.ai-msg.ai.pending{color:var(--ink-mid);font-style:italic}
+.ai-chat-chips{display:flex;flex-direction:column;gap:5px;margin-top:8px}
+.ai-chat-chip{display:flex;justify-content:space-between;align-items:center;gap:8px;
+  background:rgba(10,18,32,.5);border:1px solid var(--edge);border-radius:7px;padding:6px 10px;
+  cursor:pointer;font-size:11.5px;transition:.12s}
+.ai-chat-chip:hover{border-color:var(--gold)}
+.ai-chat-chip b{color:var(--gold-hi);font-weight:600}
+.ai-chat-input-row{display:flex;gap:8px;padding:10px 14px;border-top:1px solid var(--edge);flex:none}
+.ai-chat-input-row input{flex:1;font-size:12.5px;padding:8px 10px}
+.ai-chat-input-row button{flex:none}
 .info-modal-ov{display:none;position:fixed;inset:0;z-index:100;background:rgba(4,8,16,.72);
   backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;padding:6vh 16px;overflow-y:auto}
 .info-modal-ov.on{display:flex}
@@ -484,6 +512,7 @@ html[data-mode="light"][data-accent="amber"]{
   <input type="text" id="search-input" placeholder="Type what you're looking for — e.g. &quot;earnings&quot;, &quot;weights&quot;, &quot;holdings&quot;…" autocomplete="off" oninput="onSearchInput()" onkeydown="onSearchKey(event)">
   <button class="info-btn" onclick="openInfo()" data-tip="What does each section actually do?">?</button>
   <div class="search-results" id="search-results" style="display:none"></div>
+  <div class="ai-chat-panel" id="ai-chat-panel" style="display:none"></div>
 </div>
 
 <div id="install-banner-slot" style="margin-top:13px"></div>
@@ -520,6 +549,13 @@ html[data-mode="light"][data-accent="amber"]{
     <div id="stat-portfolio"></div>
     <div class="launch-arrow">Open →</div>
   </a>
+</div>
+
+<div class="glass card" style="margin-top:22px">
+  <div class="card-hd"><h3 data-tip="Reads whatever's been generated or saved across all three apps — a macro regime read, saved valuation reports, portfolio holdings, researched companies — and connects the dots. Home can only see saved/generated data here, not live prices from the other apps directly, so this is richer the more you've used each app.">AI Read — Cross-App</h3>
+    <button class="btn sm ai" id="btn-home-ai-read" onclick="runHomeAIRead()">Generate AI Read</button>
+  </div>
+  <div id="home-ai-read-body"></div>
 </div>
 
 <div class="glass card" style="margin-top:22px">
@@ -563,7 +599,7 @@ html[data-mode="light"][data-accent="amber"]{
 <script>
 "use strict";
 const SCHEMA='iip_v1';
-const APP_VERSION='2.0.0', BUILD_DATE='2026-08-01';
+const APP_VERSION='2.2.0', BUILD_DATE='2026-08-01';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function timeout(p,ms,lbl){ return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error((lbl||'request')+' timed out')),ms))]); }
 const clean=t=>String(t||'').replace(/<think>[\s\S]*?<\/think>/gi,'')
@@ -637,10 +673,12 @@ function onSearchInput(){
     PENDING_AI_QUERY=rawQ;
     host.style.display='block';
     host.innerHTML=`<div class="search-hit" style="cursor:default"><span class="sh-desc">No direct match for "${esc(rawQ)}".</span></div>
-      <div class="search-hit" onclick="aiSearchFallback()">
+      <div class="search-hit" id="ask-ai-btn">
         <span class="sh-app">ai</span><span class="sh-lbl">Ask AI to find it</span>
-        <span class="sh-desc">Describe what you're looking for in your own words \u2014 Groq will match it against every section, or say honestly if IIP doesn't have it.</span>
+        <span class="sh-desc">Opens a quick chat \u2014 describe what you're looking for, Groq will match it against every section or tell you honestly if IIP doesn't have it.</span>
       </div>`;
+    const askBtn=document.getElementById('ask-ai-btn');
+    if(askBtn) askBtn.addEventListener('click',()=>openAIChat(rawQ));
     return;
   }
   host.style.display='block';
@@ -654,53 +692,90 @@ function onSearchInput(){
   }).join('');
 }
 let PENDING_AI_QUERY='';
-async function aiSearchFallback(){
-  const query=PENDING_AI_QUERY;
-  const host=document.getElementById('search-results');
-  // Home loads ST once at boot and never re-reads it — if the key was added
-  // in another tab (Macro/Research/Portfolio) after this tab was opened,
-  // this in-memory ST would still be the stale boot-time copy without this.
+let AI_CHAT_HISTORY=[];
+function openAIChat(initialQuery){
+  document.getElementById('search-results').style.display='none';
+  const panel=document.getElementById('ai-chat-panel');
+  panel.style.display='flex';
+  AI_CHAT_HISTORY=[];
+  panel.innerHTML=`<div class="ai-chat-hd"><span class="t">✨ Ask AI</span><button onclick="closeAIChat()">✕</button></div>
+    <div class="ai-chat-messages" id="ai-chat-messages"></div>
+    <div class="ai-chat-input-row">
+      <input type="text" id="ai-chat-input" placeholder="Ask a follow-up…" onkeydown="if(event.key==='Enter')sendAIChatMessage()">
+      <button class="btn sm ai" onclick="sendAIChatMessage()">Send</button>
+    </div>`;
+  sendToAI(initialQuery);
+}
+function closeAIChat(){
+  document.getElementById('ai-chat-panel').style.display='none';
+  AI_CHAT_HISTORY=[];
+}
+function appendChatBubble(role,html,pending){
+  const host=document.getElementById('ai-chat-messages');
+  if(!host) return null;
+  const div=document.createElement('div');
+  div.className='ai-msg '+role+(pending?' pending':'');
+  div.innerHTML=html;
+  host.appendChild(div);
+  host.scrollTop=host.scrollHeight;
+  return div;
+}
+function sendAIChatMessage(){
+  const input=document.getElementById('ai-chat-input');
+  if(!input) return;
+  const text=input.value.trim();
+  if(!text) return;
+  input.value='';
+  sendToAI(text);
+}
+async function sendToAI(text){
+  console.log('[IIP] AI chat message:',text);
+  appendChatBubble('user',esc(text));
   try{ const raw=localStorage.getItem(SCHEMA); if(raw) Object.assign(ST,JSON.parse(raw)); }catch(e){}
   if(!ST.keys||!ST.keys.ai){
-    host.innerHTML='<div class="search-hit" style="cursor:default"><span class="sh-lbl" style="color:var(--gold-hi)">No Groq key found</span><span class="sh-desc">Add one in Settings on Macro, Research, or Portfolio \u2014 it\u2019s shared here automatically once set. If you already added one, try reloading this Home tab.</span></div>';
+    appendChatBubble('ai','<b style="color:var(--gold-hi)">No Groq key found.</b> Add one in Settings on Macro, Research, or Portfolio — shared here automatically once set. Already added one? Try reloading this tab.');
     return;
   }
-  host.innerHTML='<div class="search-hit" style="cursor:default"><span class="sh-desc"><span class="spin" style="width:12px;height:12px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:6px"></span>Asking AI\u2026</span></div>';
+  const pendingBubble=appendChatBubble('ai','<span class="spin" style="width:11px;height:11px;border-width:2px;display:inline-block;vertical-align:middle;margin-right:6px"></span>thinking…',true);
+  AI_CHAT_HISTORY.push({role:'user',content:text});
   try{
     const sectionsList=SECTIONS.map(s=>({label:s.label,app:s.app,desc:s.friendly}));
     const j=await groq('/chat/completions',{
-      model:ST.model||'openai/gpt-oss-120b', max_tokens:350, temperature:0.2, reasoning_effort:'low',
+      model:ST.model||'openai/gpt-oss-120b', max_tokens:400, temperature:0.3, reasoning_effort:'low',
       response_format:{type:'json_object'},
       messages:[
-        {role:'system',content:'You help a user find the right section of a personal investing tool called IIP, given a list of sections (which app each lives in, and what it does) and the user\u2019s query in their own words, which may not use the exact terminology in the list. Respond with ONLY a raw JSON object, no markdown fences: {"matches":[{"label":string exactly matching one from the list,"reason":string under 15 words}],"none":boolean}. Pick up to 3 matches, best first, ONLY ones that genuinely fit \u2014 a wrong guess is worse than admitting nothing fits. If truly nothing in the list matches the query\u2019s intent, set none:true and matches:[].'},
-        {role:'user',content:'Sections:\n'+JSON.stringify(sectionsList)+'\n\nUser is looking for: "'+query+'"'}
+        {role:'system',content:'You help a user find the right section of a personal investing tool called IIP, in a short back-and-forth chat. You are given the full list of sections once (which app each lives in, what it does) and then the conversation so far. Respond with ONLY a raw JSON object, no markdown fences: {"reply":string, a short conversational sentence or two, under 40 words,"matches":[{"label":string exactly matching one from the section list,"reason":string under 12 words}],"none":boolean}. Pick up to 3 matches, best first, ONLY ones that genuinely fit — a wrong guess is worse than admitting nothing fits. If the user is refining or clarifying a previous answer, use that context. If truly nothing fits, set none:true, matches:[], and say so plainly in reply.'},
+        {role:'user',content:'Sections:\n'+JSON.stringify(sectionsList)},
+        ...AI_CHAT_HISTORY
       ]
     });
     const raw=clean(j.choices?.[0]?.message?.content||'');
     const m=raw.replace(/```json|```/g,'').trim().match(/\{[\s\S]*\}/);
     if(!m) throw new Error('Model did not return parseable JSON');
     const parsed=JSON.parse(m[0]);
-    renderAISearchResult(parsed,query);
+    AI_CHAT_HISTORY.push({role:'assistant',content:raw});
+    const matches=(parsed.matches||[]).map(mm=>({...mm,section:SECTIONS.find(s=>s.label===mm.label)})).filter(mm=>mm.section);
+    let html=esc(parsed.reply||(parsed.none?'Doesn\u2019t look like IIP has that yet.':'Here\u2019s what I found:'));
+    if(matches.length){
+      html+='<div class="ai-chat-chips">'+matches.map(mm=>{
+        const s=mm.section;
+        return `<div class="ai-chat-chip" data-app="${esc(s.app)}" data-scroll="${s.scrollTo?esc(s.scrollTo):''}" data-href="${sectionHref(s)?esc(sectionHref(s)):''}">
+          <span><b>${esc(s.label)}</b> — ${esc(mm.reason)}</span><span>→</span>
+        </div>`;
+      }).join('')+'</div>';
+    }
+    if(pendingBubble){ pendingBubble.classList.remove('pending'); pendingBubble.innerHTML=html; }
+    document.querySelectorAll('.ai-chat-chip').forEach(chip=>{
+      chip.onclick=()=>{
+        const href=chip.dataset.href;
+        if(href){ location.href=href; return; }
+        if(chip.dataset.scroll){ scrollToSection(chip.dataset.scroll); closeAIChat(); }
+      };
+    });
   }catch(e){
-    host.innerHTML=`<div class="search-hit" style="cursor:default"><span class="sh-desc">AI search failed: ${esc(e.message)}</span></div>`;
+    console.error('[IIP] AI chat failed:',e);
+    if(pendingBubble){ pendingBubble.classList.remove('pending'); pendingBubble.innerHTML='Something went wrong: '+esc(e.message); }
   }
-}
-function renderAISearchResult(parsed,query){
-  const host=document.getElementById('search-results');
-  const matches=(parsed.matches||[]).map(m=>({...m,section:SECTIONS.find(s=>s.label===m.label)})).filter(m=>m.section);
-  if(parsed.none||!matches.length){
-    host.innerHTML=`<div class="search-hit" style="cursor:default"><span class="sh-lbl">No fit found</span><span class="sh-desc">AI checked "${esc(query)}" against every section and honestly came up empty \u2014 IIP likely doesn't have this yet.</span></div>`;
-    return;
-  }
-  host.innerHTML=matches.map(m=>{
-    const s=m.section;
-    const href=sectionHref(s);
-    const attr=href?`onclick="location.href='${href}'"`:`onclick="scrollToSection('${s.scrollTo}');closeSearch()"`;
-    return `<div class="search-hit" ${attr}>
-      <span class="sh-app">${esc(s.app)}</span><span class="sh-lbl">${esc(s.label)}</span>
-      <span class="sh-desc">${esc(m.reason)}</span>
-    </div>`;
-  }).join('');
 }
 function onSearchKey(e){
   const host=document.getElementById('search-results');
@@ -813,6 +888,8 @@ const ROADMAP=[
     note:'Ported the chart engine from Macro (Sectors/Indicators) into Research — same lookahead-safe range anchoring, same rendering, now driven by the same FMP hist endpoint already proven on Sector/VIX charts, not a new data source. Technical Signals card computes moving-average cross (golden/death, only flagged if it happened in the last ~5 sessions), 14-day RSI, and 52-week range position \u2014 standard arithmetic on price history. Deliberately NOT chart-pattern recognition (head-and-shoulders, triangles) \u2014 that\u2019s a research problem, not something a heuristic does honestly, and it isn\u2019t built here.'},
   {id:'portfolio-history', phase:'extra', title:'Portfolio value-over-time chart', status:'todo',
     note:'Queued. Needs new plumbing first, not just a chart \u2014 Portfolio currently only stores current holdings, not a history of what total value was on past dates. Snapshotting value on each price refresh is the prerequisite.'},
+  {id:'ai-read', phase:'extra', title:'AI Read \u2014 plain-language page explainers', status:'done',
+    note:'Groq-powered "what does this actually mean" cards, added to Portfolio (reads real holdings via portfolioComputed \u2014 weight, drift, MOS), Research Valuation (reads the fair-value range, quality/certainty, and technicals together), and Home (cross-app synthesis using whatever\u2019s been saved or generated across all three \u2014 macro regime, saved reports, holdings, researched companies). Macro\u2019s existing Cycle Read got a sharper prompt rather than a duplicate feature. Every one of these explicitly refuses to tell the user what to buy, sell, or hold \u2014 same guardrail as Cycle Read from the start, extended everywhere this pattern now lives. Honest limitation: Home only sees data already saved/generated in the other apps, not their live in-memory calculations \u2014 it says so plainly when there isn\u2019t enough to work with rather than faking a synthesis.'},
 ];
 const ARCH_DECISION='Decided and done: split into linked single-file apps (Macro / Research / Portfolio + Home launcher), sharing one localStorage schema at the same origin. No sync mechanism needed — same key, same origin, same data. PLAN now lives only here on Home — it was showing up unreliably inside the module apps, so this is the one place to check status instead of three.';
 const STATUS_LBL={done:'Live now',partial:'Partially built',todo:'Not started'};
@@ -912,6 +989,63 @@ function downloadReport(id){
   document.body.appendChild(a); a.click(); a.remove(); URL.revokeObjectURL(url);
 }
 function fmtMoney(n){ return n==null||!Number.isFinite(n)?'—':'$'+n.toFixed(2); }
+function gatherHomeAIContext(){
+  const parts=[];
+  if(ST.cycle) parts.push({section:'Macro regime (from Macro app)',data:{stage:ST.cycle.stage,confidence:ST.cycle.confidence,summary:ST.cycle.summary,watch:ST.cycle.watch}});
+  const reports=(ST.reports||[]).slice(0,10).map(r=>({symbol:r.symbol,mos:r.snapshot?.mos,quality:r.snapshot?.quality,certainty:r.snapshot?.certainty,savedAt:r.createdAt}));
+  if(reports.length) parts.push({section:'Saved valuation reports (from Research app)',data:reports});
+  const holdings=((ST.portfolio&&ST.portfolio.holdings)||[]).map(h=>({symbol:h.symbol,shares:h.shares,targetWeight:h.target}));
+  if(holdings.length) parts.push({section:'Portfolio holdings and target allocations (from Portfolio app — no live prices here, just what\u2019s held and intended)',data:holdings});
+  const researched=Object.keys(ST.companies||{}).filter(t=>ST.companies[t]&&ST.companies[t].profile).map(t=>({symbol:t,price:ST.companies[t].profile.price,name:ST.companies[t].profile.companyName}));
+  if(researched.length) parts.push({section:'Companies looked up in Research app',data:researched.slice(0,15)});
+  return parts;
+}
+async function runHomeAIRead(){
+  const btn=document.getElementById('btn-home-ai-read');
+  const host=document.getElementById('home-ai-read-body');
+  try{ const raw=localStorage.getItem(SCHEMA); if(raw) Object.assign(ST,JSON.parse(raw)); }catch(e){}
+  if(!ST.keys||!ST.keys.ai){
+    host.innerHTML='<p class="hint" style="color:var(--gold-hi)">No Groq key found \u2014 add one in Settings on Macro, Research, or Portfolio, it\u2019s shared here automatically. If you already added one, try reloading this tab.</p>';
+    return;
+  }
+  const context=gatherHomeAIContext();
+  if(!context.length){
+    host.innerHTML='<p class="hint">Nothing to read yet \u2014 generate a Cycle Read in Macro, value a company in Research, or add holdings in Portfolio, then come back here for the cross-app view.</p>';
+    return;
+  }
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  host.innerHTML='<div class="loading" style="text-align:center;padding:20px 0"><span class="spin"></span> connecting the dots\u2026</div>';
+  try{
+    const j=await groq('/chat/completions',{
+      model:ST.model||'openai/gpt-oss-120b', max_tokens:700, temperature:0.3, reasoning_effort:'low',
+      messages:[
+        {role:'system',content:'You are giving a cross-app overview inside a personal investment tool called IIP, using only whatever the user has already generated or saved across its three linked apps \u2014 you do NOT have live prices beyond what\u2019s explicitly given. Given this data: (1) connect the dots across apps \u2014 does the macro regime support or caution against the portfolio\u2019s tilt, do the saved valuations line up with what\u2019s actually held; (2) flag anything easy to overlook when looking at each app in isolation; (3) raise strategic questions worth thinking through. If the data provided is thin, say so plainly rather than overreaching. Never tell them to buy, sell, or hold \u2014 that stays their call. 3-5 short paragraphs, plain language.'},
+        {role:'user',content:JSON.stringify(context)}
+      ]
+    });
+    const text=clean(j.choices?.[0]?.message?.content||'');
+    if(!text) throw new Error('Groq returned an empty read.');
+    ST.homeAIRead={text,asof:new Date().toISOString(),model:ST.model||'openai/gpt-oss-120b'};
+    save();
+    renderHomeAIRead();
+  }catch(e){
+    host.innerHTML=`<div class="note warn" style="border-radius:var(--r)">${esc(e.message)}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='Generate AI Read';
+  }
+}
+function renderHomeAIRead(){
+  const host=document.getElementById('home-ai-read-body');
+  if(!host) return;
+  const r=ST.homeAIRead;
+  if(!r){
+    host.innerHTML='<p class="hint">No AI Read yet \u2014 hit <b style="color:var(--gold-hi)">Generate AI Read</b> above. Richer the more you\u2019ve used each app.</p>';
+    return;
+  }
+  const body=esc(r.text).replace(/\n/g,'<br>');
+  host.innerHTML=`<div class="asof" style="margin-bottom:8px">Generated ${agoStr(r.asof)} \u00b7 ${esc(r.model)} \u00b7 AI synthesis, not advice</div>
+    <div style="font-size:13px;line-height:1.7">${body}</div>`;
+}
 function renderReports(){
   const host=document.getElementById('reports-card');
   const reports=ST.reports||[];
@@ -1030,6 +1164,7 @@ function initThemeWatcher(){
 }
 
 applyTheme(); initThemeWatcher(); renderAppearance();
+renderHomeAIRead();
 renderReports();
 renderPlan();
 </script>
