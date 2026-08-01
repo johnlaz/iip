@@ -1700,10 +1700,13 @@ function boot(){
 
   // Cross-app deep link from Portfolio: iip-research.html?ticker=AAPL
   const urlTicker=new URLSearchParams(location.search).get('ticker');
+  const urlTab=new URLSearchParams(location.search).get('tab');
   if(urlTicker){
     go('val');
     document.getElementById('val-ticker').value=urlTicker.toUpperCase();
     lookupCompany();
+  }else if(urlTab){
+    go(urlTab);
   }else if(ST.lastValTicker && ST.companies[ST.lastValTicker]){
     document.getElementById('val-ticker').value=ST.lastValTicker;
     renderValuation(ST.lastValTicker);

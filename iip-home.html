@@ -340,6 +340,8 @@ tr.clk:hover td:first-child{color:var(--teal-hi)}
 .cycle-lists li{font-size:12.5px;padding:6px 0 6px 15px;position:relative;line-height:1.5;border-bottom:1px solid rgba(120,160,220,.06)}
 .cycle-lists li::before{content:'—';position:absolute;left:0;color:var(--ink-faint)}
 .launch-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(min(300px,100%),1fr));gap:16px;margin-top:22px}
+.launch-grid .launch-card:nth-child(3):last-child{grid-column:1 / -1}
+.launch-grid .launch-card:nth-child(3):last-child .launch-stat{max-width:420px}
 .launch-card{display:block;text-decoration:none;color:inherit;padding:24px;border-radius:var(--r);
   background:var(--panel);border:1px solid var(--edge);backdrop-filter:blur(20px) saturate(140%);
   transition:border-color .18s,transform .18s}
@@ -419,6 +421,35 @@ html[data-mode="light"][data-accent="amber"]{
 .swatch[data-a="rose"]{background:linear-gradient(135deg,#d6607e,#4fc3d9)}
 .swatch[data-a="amber"]{background:linear-gradient(135deg,#d68a3c,#6b93d6)}
 
+.search-row{display:flex;gap:8px;margin-top:18px;position:relative}
+.search-row input{flex:1;font-size:14px;padding:11px 14px}
+.info-btn{flex:none;width:44px;height:44px;border-radius:10px;border:1px solid var(--edge);
+  background:var(--panel);color:var(--gold-hi);font-family:var(--disp);font-style:italic;font-weight:700;
+  font-size:17px;cursor:pointer;transition:.15s}
+.info-btn:hover{border-color:var(--edge-hi)}
+.search-results{position:absolute;top:calc(100% + 6px);left:0;right:56px;z-index:40;
+  background:var(--panel-hi);backdrop-filter:blur(20px) saturate(140%);border:1px solid var(--edge-hi);
+  border-radius:var(--r-sm);overflow:hidden;box-shadow:0 14px 40px rgba(0,0,0,.4)}
+.search-hit{display:block;padding:11px 14px;text-decoration:none;color:inherit;cursor:pointer;
+  border-bottom:1px solid var(--edge);transition:.12s}
+.search-hit:last-child{border-bottom:0}
+.search-hit:hover,.search-hit.sel{background:var(--gold-dim)}
+.search-hit .sh-app{font-family:var(--mono);font-size:9.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--gold-hi)}
+.search-hit .sh-lbl{font-weight:600;font-size:13px;margin-left:8px}
+.search-hit .sh-desc{display:block;font-size:11.5px;color:var(--ink-mid);margin-top:2px;line-height:1.4}
+.info-modal-ov{display:none;position:fixed;inset:0;z-index:100;background:rgba(4,8,16,.72);
+  backdrop-filter:blur(6px);align-items:flex-start;justify-content:center;padding:6vh 16px;overflow-y:auto}
+.info-modal-ov.on{display:flex}
+.info-modal-box{width:100%;max-width:640px;background:var(--panel-hi);border:1px solid var(--edge-hi);
+  border-radius:var(--r);padding:24px;backdrop-filter:blur(24px) saturate(150%)}
+.info-modal-hd{display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px}
+.info-app-group{margin-bottom:18px}
+.info-app-group h4{font-family:var(--disp);font-style:italic;color:var(--teal-hi);font-size:15px;margin-bottom:8px}
+.info-item{padding:9px 0;border-bottom:1px solid rgba(120,160,220,.07)}
+.info-item:last-child{border-bottom:0}
+.info-item b{font-size:13px;color:var(--ink)}
+.info-item p{font-size:12.5px;color:var(--ink-mid);line-height:1.6;margin-top:3px}
+
 </style>
 </head>
 <body>
@@ -431,6 +462,25 @@ html[data-mode="light"][data-accent="amber"]{
     <p class="tagline">Three linked apps, one shared dataset. Enter your keys once — they carry across all three, same origin, same localStorage.</p>
   </div>
 </header>
+
+<div class="search-row">
+  <input type="text" id="search-input" placeholder="Type what you're looking for — e.g. &quot;earnings&quot;, &quot;weights&quot;, &quot;holdings&quot;…" autocomplete="off" oninput="onSearchInput()" onkeydown="onSearchKey(event)">
+  <button class="info-btn" onclick="openInfo()" data-tip="What does each section actually do?">?</button>
+  <div class="search-results" id="search-results" style="display:none"></div>
+</div>
+
+<div class="info-modal-ov" id="info-modal-ov" onclick="if(event.target===this)closeInfo()">
+  <div class="info-modal-box">
+    <div class="info-modal-hd">
+      <div>
+        <h2 style="font-family:var(--disp);font-size:1.4rem;font-weight:700">What's in here</h2>
+        <p style="color:var(--ink-mid);font-size:12.5px;margin-top:4px">A plain-language walkthrough of every section, grouped by app.</p>
+      </div>
+      <button class="btn sm" onclick="closeInfo()">✕</button>
+    </div>
+    <div id="info-body"></div>
+  </div>
+</div>
 
 <div class="launch-grid">
   <a class="launch-card" href="./iip-macro.html">
@@ -482,6 +532,100 @@ function agoStr(iso){
 }
 function stat(label,value){ return `<div class="launch-stat"><i>${esc(label)}</i><b>${esc(value)}</b></div>`; }
 
+/* Single index powers both the search box and the Info modal — one list of
+   what exists, described in plain language, instead of maintaining two. */
+const APP_FILES={macro:'iip-macro.html',research:'iip-research.html',portfolio:'iip-portfolio.html'};
+const SECTIONS=[
+  {app:'macro',tab:'dash',label:'Regime Dashboard',
+    friendly:'Your at-a-glance market weather report — one score blending six pillars (growth, labor, inflation, rates, credit, sentiment), an AI-written briefing on what changed, and where broad market valuation stands right now.'},
+  {app:'macro',tab:'ind',label:'Indicators',
+    friendly:'Every individual data series behind the regime score, laid out with its current level, how unusual that level is historically, and which way it\u2019s trending.'},
+  {app:'macro',tab:'sect',label:'Sectors',
+    friendly:'Which of the 11 market sectors are leading and lagging right now, with a plain Overweight / Neutral / Underweight call for each.'},
+  {app:'macro',tab:'lab',label:'Weights Lab',
+    friendly:'Tune how much each pillar counts toward the regime score, then test how that choice would have played out against real market history.'},
+  {app:'macro',tab:'imp',label:'Import',
+    friendly:'A place to paste in data that has no clean API to pull automatically \u2014 things like margin debt or credit spreads.'},
+  {app:'macro',tab:'set',label:'Macro Settings',
+    friendly:'API keys, connection status, and appearance preferences \u2014 shared with the other two apps automatically.'},
+  {app:'research',tab:'val',label:'Valuation',
+    friendly:'Pick a company and get an estimated fair-value range built three different ways, a plain read on business quality, and an AI summary of the latest earnings call.'},
+  {app:'research',tab:'scr',label:'Screener',
+    friendly:'A fast first pass across the entire S&P 500, ranked by how cheap and how solid each company looks \u2014 a shortlist generator, not a final answer.'},
+  {app:'research',tab:'mon',label:'Monitor',
+    friendly:'Keeps an eye on upcoming earnings dates and dividend payments for anything on your watchlist or in your portfolio.'},
+  {app:'research',tab:'set',label:'Research Settings',
+    friendly:'API keys, connection status, and appearance preferences for this app.'},
+  {app:'portfolio',tab:'port',label:'Portfolio & Journal',
+    friendly:'Track what you actually own, see how far each position has drifted from target, and jot down the reasoning behind a call so you can revisit it later.'},
+  {app:'portfolio',tab:'set',label:'Portfolio Settings',
+    friendly:'API key and appearance preferences for this app.'},
+  {app:'home',scrollTo:'reports-card',label:'Reports',
+    friendly:'Point-in-time snapshots you\u2019ve saved from Valuation \u2014 frozen at the moment you saved them, not a live view that changes later.'},
+  {app:'home',scrollTo:'plan-card',label:'Build Plan',
+    friendly:'What\u2019s actually built, what\u2019s partial, and what\u2019s not started \u2014 maintained directly in the files, not a separate document that goes stale.'},
+];
+
+function sectionHref(s){
+  if(s.app==='home') return null;
+  return APP_FILES[s.app]+'?tab='+s.tab;
+}
+let SEARCH_SEL=-1;
+function onSearchInput(){
+  const q=document.getElementById('search-input').value.trim().toLowerCase();
+  const host=document.getElementById('search-results');
+  SEARCH_SEL=-1;
+  if(!q){ host.style.display='none'; host.innerHTML=''; return; }
+  const hits=SECTIONS.filter(s=>s.label.toLowerCase().includes(q)||s.friendly.toLowerCase().includes(q));
+  if(!hits.length){ host.style.display='block'; host.innerHTML='<div class="search-hit" style="cursor:default"><span class="sh-desc">No matches \u2014 try a different word.</span></div>'; return; }
+  host.style.display='block';
+  host.innerHTML=hits.slice(0,8).map((s,i)=>{
+    const href=sectionHref(s);
+    const attr=href?`onclick="location.href='${href}'"`:`onclick="scrollToSection('${s.scrollTo}');closeSearch()"`;
+    return `<div class="search-hit" data-i="${i}" ${attr}>
+      <span class="sh-app">${esc(s.app)}</span><span class="sh-lbl">${esc(s.label)}</span>
+      <span class="sh-desc">${esc(s.friendly)}</span>
+    </div>`;
+  }).join('');
+}
+function onSearchKey(e){
+  const host=document.getElementById('search-results');
+  const hits=[...host.querySelectorAll('.search-hit[data-i]')];
+  if(e.key==='Escape'){ closeSearch(); return; }
+  if(!hits.length) return;
+  if(e.key==='ArrowDown'){ e.preventDefault(); SEARCH_SEL=Math.min(SEARCH_SEL+1,hits.length-1); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); SEARCH_SEL=Math.max(SEARCH_SEL-1,0); }
+  else if(e.key==='Enter'){ e.preventDefault(); if(hits[SEARCH_SEL]) hits[SEARCH_SEL].click(); return; }
+  else return;
+  hits.forEach((h,i)=>h.classList.toggle('sel',i===SEARCH_SEL));
+}
+function closeSearch(){
+  document.getElementById('search-results').style.display='none';
+  document.getElementById('search-input').value='';
+}
+function scrollToSection(id){
+  const el=document.getElementById(id);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+document.addEventListener('click',e=>{
+  if(!e.target.closest('.search-row')) document.getElementById('search-results').style.display='none';
+});
+
+function openInfo(){
+  const groups={macro:'Macro',research:'Research',portfolio:'Portfolio',home:'Home'};
+  const body=Object.keys(groups).map(app=>{
+    const items=SECTIONS.filter(s=>s.app===app);
+    if(!items.length) return '';
+    return `<div class="info-app-group"><h4>${esc(groups[app])}</h4>
+      ${items.map(s=>`<div class="info-item"><b>${esc(s.label)}</b><p>${esc(s.friendly)}</p></div>`).join('')}
+    </div>`;
+  }).join('');
+  document.getElementById('info-body').innerHTML=body;
+  document.getElementById('info-modal-ov').classList.add('on');
+}
+function closeInfo(){ document.getElementById('info-modal-ov').classList.remove('on'); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') closeInfo(); });
+
 let ST={};
 try{ const raw=localStorage.getItem(SCHEMA); if(raw) ST=JSON.parse(raw); }catch(e){}
 
@@ -531,8 +675,8 @@ const ROADMAP=[
     note:'Pulls the full S&P 500 constituent list plus one trailing-ratios call per company, ranks on P/E, P/B, ROE, D/E and net margin (cross-sectional percentile, same technique as Sector Rotation). Deliberately NOT the full DCF/Graham/multiples engine run 500× — that’s not practical client-side. Click-through sends any ticker to Valuation for the real deep dive.'},
   {id:'portfolio', phase:'6', title:'Portfolio & Rebalancing', status:'done',
     note:'Manual holdings entry or CSV import, on-demand pricing, exposure/weight, drift from target, Overweight/Underweight rebalance flags, and a capital-deployment suggestion that splits new cash across underweights (never suggests selling). Margin of safety pulls straight from Valuation’s cache per ticker — no separate fetch. NOT built: pairwise correlations or expected-return modeling, which need historical return series across every holding — a real lift, deferred rather than faked.'},
-  {id:'backtest', phase:'7', title:'Backtesting', status:'todo',
-    note:'Historical validation of the regime, sector, and valuation signals across multiple cycles. Not started.'},
+  {id:'backtest', phase:'7', title:'Backtesting', status:'done',
+    note:'Lives in Weights Lab: reconstructs the regime score at each historical month using ONLY data that would have been known at that point (point-in-time percentiles, verified lookahead-free against a synthetic series with a known jump date), then checks average SPY forward returns (1M/3M/6M) by regime band. Uses TODAY’S weights applied retroactively — deliberately NOT an automated weight optimizer, since curve-fitting weights to a short, overlapping-window history is close to the exact overfitting the plan’s own principles warn against. Adjust weights manually and re-run to test a hypothesis instead. Sector- and valuation-signal backtesting from the original plan’s fuller scope are NOT built — regime-vs-forward-returns only.'},
   {id:'monitoring', phase:'8', title:'Monitoring & Alerts', status:'done',
     note:'Lives in Research: a watchlist (union with Portfolio holdings defines the monitored set) plus per-ticker earnings and dividend dates — next earnings date, last quarter’s surprise, next ex-div, dividend trend, and a margin-of-safety flag pulled straight from Valuation’s cache. NOT built: automated push/email alerts (this is pull-to-refresh, no background execution) or macro/portfolio-level alert triggers from the original plan’s fuller scope — earnings/dividends only.'},
   {id:'ai-analyst', phase:'9', title:'AI Analyst — company level', status:'done',
@@ -541,6 +685,14 @@ const ROADMAP=[
     note:'Lives inside the Portfolio tab rather than as its own — date, optional ticker, tag (Thesis/Buy/Sell/Watch/Note), title, freeform body. Filterable by ticker. Deliberately simple: no linking beyond the ticker tag, no structured thesis-tracking against outcomes — just something worth actually rereading later.'},
   {id:'marketval', phase:'extra', title:'Market Valuation Layer', status:'done',
     note:'New card on the Regime dashboard: 10Y yield, HY/IG OAS, and VIX (already-fetched indicators) alongside a new equal-weighted S&P aggregate P/E, P/B, earnings yield and equity risk premium derived from Screener data. Equal-weighted, not cap-weighted — cap-weighting needs an extra mktCap pull across the index. NOT built: CAPE (not on FMP, it’s Shiller’s own dataset), forward P/E (no analyst estimates pulled), market cap/GDP (needs total-market cap, not just S&P). Absent rather than approximated.'},
+  {id:'design-system', phase:'extra', title:'Design system — Lazzaro Standard', status:'done',
+    note:'Dark navy/gold/teal glassmorphism, Playfair Display + DM Sans + JetBrains Mono, applied consistently across all four apps — the visual identity underneath everything else on this list.'},
+  {id:'theming', phase:'extra', title:'Theming — dark/light + 4 accent colors', status:'done',
+    note:'System-follow toggle (Light/Dark/System) plus four accent palettes (Classic, Emerald, Rose, Amber), each with genuinely separate light-mode values rather than the dark tones reused at low contrast. Semantic colors (gain/loss/caution) stay fixed across every combination. Preference is shared state — set it once, applies everywhere.'},
+  {id:'reports', phase:'extra', title:'Saved Reports + backup prompts', status:'done',
+    note:'Save Report on Valuation freezes a true point-in-time snapshot — price, fair value range, MOS, quality/certainty, call analysis — into a directory on Home (expand, download as JSON, delete). Separately, a dismissible banner nudges toward exporting a backup once data is >50KB and the last export is over a week old.'},
+  {id:'search-info', phase:'extra', title:'Search & Info', status:'done',
+    note:'Type-ahead search on Home jumps straight to any section across all three apps via a shared ?tab= deep link. The same index of sections, in plain language, powers a separate Info modal — one list, two surfaces, so they can\u2019t drift out of sync with each other.'},
 ];
 const ARCH_DECISION='Decided and done: split into linked single-file apps (Macro / Research / Portfolio + Home launcher), sharing one localStorage schema at the same origin. No sync mechanism needed — same key, same origin, same data. PLAN now lives only here on Home — it was showing up unreliably inside the module apps, so this is the one place to check status instead of three.';
 const STATUS_LBL={done:'Live now',partial:'Partially built',todo:'Not started'};

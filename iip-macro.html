@@ -509,6 +509,18 @@ html[data-mode="light"][data-accent="amber"]{
       <div id="composite"></div>
     </div>
   </div>
+
+  <div class="glass card" style="margin-top:13px">
+    <div class="card-hd"><h3 data-tip="Scores every historical month using only data that would have been known at that point — no lookahead — then checks how SPY performed afterward, bucketed by which regime band that month landed in. Uses the weights set above, applied retroactively; adjust them and re-run to see how a different weighting would have read.">Regime Backtest</h3>
+      <button class="btn gold" id="btn-backtest-run" onclick="runBacktest()">Run backtest</button>
+    </div>
+    <div id="backtest-body">
+      <div class="empty">
+        <b>No backtest run yet</b>
+        <p>Hit <b style="color:var(--gold-hi)">Run backtest</b> above — pulls SPY history once, then scores every historical month using only data that would have been known at that point.</p>
+      </div>
+    </div>
+  </div>
 </section>
 
 <section class="view" id="v-imp">
@@ -651,6 +663,8 @@ const DEFAULT={
   lastSeen:null,
   theme:{mode:'system',accent:'classic'},
   lastBackupAt:null,
+  backtestResults:null,   // {rows, summary, dateRange, weights} — cached so it doesn't need recomputing on every tab visit
+  backtestResultsAt:null,
   sectorsFetchedAt:null,
   screener:{rows:[]},
   screenerFetchedAt:null,
@@ -996,6 +1010,182 @@ function composite(w){
     num+=s.now*wt; den+=wt;
   }
   return den?num/den:null;
+}
+
+/* ══════════ REGIME BACKTEST ══════════
+   Phase 7. Point-in-time scoring: stats() computes a percentile purely from
+   whatever array it's handed, so slicing each indicator's series to only
+   dates <= T and feeding that in reproduces exactly what the live percentile
+   calc would have shown on that date — no lookahead, by construction, not
+   by a separate safeguard bolted on after.
+
+   What this deliberately does NOT do, stated rather than implied:
+   - Does not find or optimize weights. It applies TODAY'S weights
+     retroactively. The original plan wanted to "replace arbitrary weights
+     with evidence" — an automated optimizer curve-fits weights to a short,
+     overlapping-window history, which is close to the exact overfitting
+     the plan's own design principles warn against. Manually adjust weights
+     in the Lab above and re-run to see how a choice would have performed —
+     that keeps a human judgment in the loop instead of an optimizer's.
+   - Does not correct for overlapping monthly windows. A 3-month forward
+     return computed at consecutive monthly points shares two of three
+     months of data with its neighbor — these are NOT independent
+     observations, so the N shown overstates statistical power. Read this
+     as directional, not as a significance-tested result.
+   - Is bounded by whatever history your FMP plan actually returns for each
+     indicator, which may be far short of the "long historical periods"
+     the plan envisioned. Small samples get flagged, not hidden. */
+function seriesAsOf(rows,dateStr){
+  return (rows||[]).filter(r=>r.d<=dateStr);
+}
+function pillarScoreAsOf(pid,dateStr){
+  const mem=CATALOG.filter(c=>c.p===pid);
+  const vals=[];
+  for(const c of mem){
+    const s=stats(seriesAsOf(ST.series[c.id],dateStr),c);
+    if(!s) continue;
+    vals.push(c.invert?100-s.pct:s.pct);
+  }
+  return vals.length?vals.reduce((a,b)=>a+b,0)/vals.length:null;
+}
+function compositeAsOf(dateStr,w){
+  let num=0,den=0;
+  for(const p of PILLARS){
+    const s=pillarScoreAsOf(p.id,dateStr); if(s==null) continue;
+    const wt=(w||ST.weights)[p.id]||0;
+    num+=s*wt; den+=wt;
+  }
+  return den?num/den:null;
+}
+async function loadBacktestBenchmark(){
+  if(!ST.endpoints.hist) await probeEndpoints();
+  if(!ST.endpoints.hist) throw new Error('Historical price endpoint unresolved — check Settings.');
+  const rows=asArr(await fmp(epPath('hist',BENCH)));
+  if(!rows.length) throw new Error(`No historical price data returned for ${BENCH}.`);
+  const sorted=sortNewestFirst(rows.map(r=>({d:r.date,v:+r.close})).filter(r=>Number.isFinite(r.v)));
+  if(sorted.length<300) throw new Error(`Only ${sorted.length} days of ${BENCH} history available — not enough for a meaningful backtest.`);
+  ST.series.spy=sorted;
+  ST.meta.spy={asof:sorted[0].d,src:`FMP · ${BENCH}`,resolved:true};
+}
+function computeRegimeBacktest(){
+  const spy=[...(ST.series.spy||[])].reverse(); // ascending for the binary searches below
+  if(spy.length<300) return {error:`Not enough ${BENCH} history — run Refresh below first.`};
+
+  function priceAtOrBefore(ds){
+    let lo=0,hi=spy.length-1,ans=null;
+    while(lo<=hi){ const mid=(lo+hi)>>1; if(spy[mid].d<=ds){ ans=spy[mid].v; lo=mid+1; } else hi=mid-1; }
+    return ans;
+  }
+  function priceAtOrAfter(ds){
+    let lo=0,hi=spy.length-1,ans=null;
+    while(lo<=hi){ const mid=(lo+hi)>>1; if(spy[mid].d>=ds){ ans=spy[mid].v; hi=mid-1; } else lo=mid+1; }
+    return ans;
+  }
+
+  const firstDate=spy[0].d, lastDate=spy[spy.length-1].d;
+  const cutoff=new Date(Date.parse(lastDate)-186*864e5).toISOString().slice(0,10); // leaves room for a 6M forward return
+  const dates=[];
+  const cur=new Date(firstDate); cur.setUTCDate(1); cur.setUTCMonth(cur.getUTCMonth()+1);
+  while(true){
+    const ds=cur.toISOString().slice(0,10);
+    if(ds>cutoff) break;
+    dates.push(ds);
+    cur.setUTCMonth(cur.getUTCMonth()+1);
+  }
+  if(!dates.length) return {error:`${BENCH} history doesn't span enough time yet for even one monthly sample with a 6-month forward window.`};
+
+  const rows=[];
+  for(const ds of dates){
+    const regime=compositeAsOf(ds);
+    if(regime==null) continue;
+    const p0=priceAtOrBefore(ds);
+    if(p0==null) continue;
+    const fwd=days=>{
+      const target=new Date(Date.parse(ds)+days*864e5).toISOString().slice(0,10);
+      const p1=priceAtOrAfter(target);
+      return p1!=null?((p1/p0)-1)*100:null;
+    };
+    rows.push({date:ds,regime,r1:fwd(30),r3:fwd(91),r6:fwd(182)});
+  }
+  if(!rows.length) return {error:'No indicator history overlaps the available SPY window — nothing to score.'};
+
+  const buckets={riskOn:[],neutral:[],riskOff:[]};
+  rows.forEach(r=>{
+    const b=r.regime>=66?'riskOn':r.regime<=33?'riskOff':'neutral';
+    buckets[b].push(r);
+  });
+  const summarize=(arr,key)=>{
+    const vals=arr.map(r=>r[key]).filter(Number.isFinite);
+    if(!vals.length) return {n:0,avg:null,winRate:null};
+    const avg=vals.reduce((a,b)=>a+b,0)/vals.length;
+    const winRate=(vals.filter(v=>v>0).length/vals.length)*100;
+    return {n:vals.length,avg,winRate};
+  };
+  const summary={};
+  ['riskOn','neutral','riskOff'].forEach(b=>{
+    summary[b]={r1:summarize(buckets[b],'r1'),r3:summarize(buckets[b],'r3'),r6:summarize(buckets[b],'r6'),total:buckets[b].length};
+  });
+
+  return {rows,summary,dateRange:{from:dates[0],to:dates[dates.length-1]},weights:{...ST.weights}};
+}
+async function runBacktest(){
+  const btn=document.getElementById('btn-backtest-run');
+  const host=document.getElementById('backtest-body');
+  if(!ST.keys.fmp){ toast('Add your FMP key in Settings first'); go('set'); return; }
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span>';
+  host.innerHTML='<div class="loading" style="text-align:center;padding:40px 0"><span class="spin"></span> computing…</div>';
+  try{
+    if(!ST.series.spy||!ST.series.spy.length){
+      btn.innerHTML=`<span class="spin"></span> pulling ${BENCH}…`;
+      await loadBacktestBenchmark();
+    }
+    const result=computeRegimeBacktest();
+    if(result.error) throw new Error(result.error);
+    ST.backtestResults=result;
+    ST.backtestResultsAt=new Date().toISOString();
+    save();
+    renderBacktest();
+    toast(`Backtest complete — ${result.rows.length} monthly observations, ${result.dateRange.from} to ${result.dateRange.to}.`);
+  }catch(e){
+    host.innerHTML=`<div class="note warn" style="border-radius:var(--r)">${esc(e.message)}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='Run backtest';
+  }
+}
+function renderBacktest(){
+  const host=document.getElementById('backtest-body');
+  if(!host) return;
+  const r=ST.backtestResults;
+  if(!r){
+    host.innerHTML='<div class="empty"><b>No backtest run yet</b><p>Hit <b style="color:var(--gold-hi)">Run backtest</b> below — pulls SPY history once, then scores every historical month using only data that would have been known at that point.</p></div>';
+    return;
+  }
+  const bandLbl={riskOn:'Risk-On (\u226566)',neutral:'Neutral (34\u201365)',riskOff:'Risk-Off (\u226433)'};
+  const bandCls={riskOn:'pos',neutral:'flat',riskOff:'neg'};
+  const fmtPct=v=>v==null?'—':(v>=0?'+':'')+v.toFixed(1)+'%';
+  const rows=['riskOn','neutral','riskOff'].map(b=>{
+    const s=r.summary[b];
+    return `<tr>
+      <td><span class="badge ${bandCls[b]}">${bandLbl[b]}</span></td>
+      <td class="num">${s.total}</td>
+      <td class="num ${cls(s.r1.avg)}">${fmtPct(s.r1.avg)}</td>
+      <td class="num ${cls(s.r3.avg)}">${fmtPct(s.r3.avg)}</td>
+      <td class="num ${cls(s.r6.avg)}">${fmtPct(s.r6.avg)}</td>
+      <td class="num">${s.r3.winRate==null?'—':s.r3.winRate.toFixed(0)+'%'}</td>
+    </tr>`;
+  }).join('');
+  host.innerHTML=`
+    <div style="overflow-x:auto"><table>
+      <thead><tr>
+        <th>Regime band</th><th data-tip="Number of monthly observations that fell in this band.">N</th>
+        <th data-tip="Average SPY return in the ~30 days following months scored in this band.">Fwd 1M</th>
+        <th data-tip="Average SPY return in the ~91 days following.">Fwd 3M</th>
+        <th data-tip="Average SPY return in the ~182 days following.">Fwd 6M</th>
+        <th data-tip="Share of 3-month forward windows that were positive.">3M win rate</th>
+      </tr></thead>
+      <tbody>${rows}</tbody></table></div>
+    <p class="hint" style="margin-top:10px">${esc(r.dateRange.from)} to ${esc(r.dateRange.to)} · ${r.rows.length} monthly points · today's weights applied retroactively, not optimized · overlapping windows mean N overstates independent observations — read directionally, not as a significance test.</p>
+    <div class="asof">Last run ${agoStr(ST.backtestResultsAt)}</div>`;
 }
 
 /* Instant, rule-based read — no API call, no waiting. The AI Cycle Read below
@@ -1853,7 +2043,7 @@ function renderModels(){
 
 const APP_NAME='Macro';
 
-function renderAll(){ renderCycle(); renderSpines(); renderMarketValuation(); renderChanges(); renderIndicators(); renderSectors(); renderBreadth(); renderLab(); renderManual(); renderEndpoints(); renderModels(); renderFoot(); renderFreshness(); checkBackupPrompt(); }
+function renderAll(){ renderCycle(); renderSpines(); renderMarketValuation(); renderChanges(); renderIndicators(); renderSectors(); renderBreadth(); renderLab(); renderBacktest(); renderManual(); renderEndpoints(); renderModels(); renderFoot(); renderFreshness(); checkBackupPrompt(); }
 
 function renderFreshness(){
   const setLight=(dotId,lblId,iso)=>{
@@ -2015,7 +2205,9 @@ function boot(){
 
   installManifest();
   if(ST.keys.ai&&!ST.models.length) loadModels();
-  if(!ST.keys.fmp) go('set');
+  const urlTab=new URLSearchParams(location.search).get('tab');
+  if(urlTab) go(urlTab);
+  else if(!ST.keys.fmp) go('set');
 }
 document.addEventListener('DOMContentLoaded',boot);
 
