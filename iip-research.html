@@ -3,6 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<script>(function(){try{var r=localStorage.getItem('iip_v1');var t=r?JSON.parse(r).theme:null;var mode=(t&&t.mode)||'system';if(mode==='system')mode=(window.matchMedia&&matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';document.documentElement.dataset.mode=mode;document.documentElement.dataset.accent=(t&&t.accent)||'classic';}catch(e){}})();</script>
 <meta name="theme-color" content="#070d1a">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
@@ -344,6 +345,73 @@ tr.clk:hover td:first-child{color:var(--teal-hi)}
 .app-switch a:hover{color:var(--teal-hi)}
 .app-switch .cur{color:var(--gold-hi)}
 .app-switch .sep{color:var(--ink-faint)}
+
+/* ══════════ THEMING ══════════
+   Two independent axes: mode (dark/light) and accent (4 palettes).
+   pos/neg/warn (gain/loss/caution) stay FIXED across every combination —
+   those carry meaning and shouldn't shift with a color preference.
+   Applied via data-attributes on <html>, read from shared ST.theme so the
+   preference is consistent across all four apps, same as API keys. */
+html[data-mode="light"]{
+  --void:#f3f5fa; --deep:#e7ebf4;
+  --panel:rgba(255,255,255,.72); --panel-hi:rgba(255,255,255,.88);
+  --edge:rgba(30,50,90,.12); --edge-hi:rgba(30,50,90,.24);
+  --ink:#131b2c; --ink-mid:#3f4d68; --ink-low:#6c7996; --ink-faint:#a3aec2;
+}
+html[data-mode="light"] body::before{
+  background:
+    radial-gradient(900px 620px at 12% -8%, rgba(63,208,201,.07), transparent 62%),
+    radial-gradient(760px 560px at 92% 4%, rgba(212,169,73,.08), transparent 60%),
+    radial-gradient(1100px 800px at 50% 108%, rgba(40,80,150,.05), transparent 68%);
+}
+html[data-mode="light"] .plan-fab{ background:rgba(255,255,255,.85); }
+
+html[data-accent="emerald"]{
+  --gold:#2ba97d; --gold-hi:#5fd6a8; --gold-dim:rgba(43,169,125,.13);
+  --teal:#8b7fd6; --teal-hi:#b8aef0; --teal-dim:rgba(139,127,214,.12);
+}
+html[data-accent="rose"]{
+  --gold:#d6607e; --gold-hi:#f0a3b8; --gold-dim:rgba(214,96,126,.13);
+  --teal:#4fc3d9; --teal-hi:#8fe0ef; --teal-dim:rgba(79,195,217,.12);
+}
+html[data-accent="amber"]{
+  --gold:#d68a3c; --gold-hi:#f0b56e; --gold-dim:rgba(214,138,60,.13);
+  --teal:#6b93d6; --teal-hi:#a3c1ef; --teal-dim:rgba(107,147,214,.12);
+}
+/* Light mode needs its own accent values — the dark "hi" tones are too pale
+   to read on a white background, so this isn't just reusing the pairs above. */
+html[data-mode="light"][data-accent="classic"]{
+  --gold:#a5761f; --gold-hi:#8a5f14; --gold-dim:rgba(165,118,31,.10);
+  --teal:#1f9088; --teal-hi:#146b64; --teal-dim:rgba(31,144,136,.09);
+}
+html[data-mode="light"][data-accent="emerald"]{
+  --gold:#1f8f66; --gold-hi:#14704f; --gold-dim:rgba(31,143,102,.10);
+  --teal:#6a5cc4; --teal-hi:#52459e; --teal-dim:rgba(106,92,196,.09);
+}
+html[data-mode="light"][data-accent="rose"]{
+  --gold:#b8456a; --gold-hi:#93304f; --gold-dim:rgba(184,69,106,.10);
+  --teal:#2a94ab; --teal-hi:#1c7386; --teal-dim:rgba(42,148,171,.09);
+}
+html[data-mode="light"][data-accent="amber"]{
+  --gold:#b06a1f; --gold-hi:#8c5314; --gold-dim:rgba(176,106,31,.10);
+  --teal:#4c74c4; --teal-hi:#3a5a9e; --teal-dim:rgba(76,116,196,.09);
+}
+
+.appear-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.mode-btn{font-family:var(--mono);font-size:11px;padding:7px 13px;border-radius:8px;
+  border:1px solid var(--edge);background:transparent;color:var(--ink-mid);cursor:pointer;transition:.15s}
+.mode-btn.on{border-color:var(--gold);color:var(--gold-hi);background:var(--gold-dim)}
+.swatch-row{display:flex;gap:10px}
+.swatch{width:34px;height:34px;border-radius:50%;cursor:pointer;border:2px solid transparent;
+  transition:.15s;position:relative}
+.swatch.on{border-color:var(--ink)}
+.swatch.on::after{content:'✓';position:absolute;inset:0;display:flex;align-items:center;justify-content:center;
+  color:#fff;font-size:14px;text-shadow:0 1px 3px rgba(0,0,0,.5)}
+.swatch[data-a="classic"]{background:linear-gradient(135deg,#d4a949,#3fd0c9)}
+.swatch[data-a="emerald"]{background:linear-gradient(135deg,#2ba97d,#8b7fd6)}
+.swatch[data-a="rose"]{background:linear-gradient(135deg,#d6607e,#4fc3d9)}
+.swatch[data-a="amber"]{background:linear-gradient(135deg,#d68a3c,#6b93d6)}
+
 </style>
 </head>
 <body>
@@ -357,9 +425,11 @@ tr.clk:hover td:first-child{color:var(--teal-hi)}
   </div>
   <div class="hdr-side">
     <span class="pill" data-tip="Green = key set and endpoints resolved. Amber = key saved, not yet probed. Red = probe failed."><i class="dot" id="d-fmp"></i>FMP</span>
+    <span class="pill" data-tip="Powers earnings call analysis on Valuation. Green = key set and model list loaded. Amber = key saved, not yet verified."><i class="dot" id="d-ai"></i>GROQ</span>
   </div>
 </header>
 
+<div id="backup-banner-slot"></div>
 <nav class="tabs">
   <button class="tab" data-v="val" onclick="go('val',this)" data-tip="Single-company intrinsic value range from DCF, Graham and historical multiples, plus a quality/certainty read.">Valuation</button>
   <button class="tab" data-v="scr" onclick="go('scr',this)" data-tip="S&amp;P 500 ranked on trailing P/E, P/B, ROE, debt/equity and margin — a first-pass scan, not the full valuation engine.">Screener</button>
@@ -436,8 +506,27 @@ tr.clk:hover td:first-child{color:var(--teal-hi)}
       </label>
       <input type="password" id="k-fmp" placeholder="required">
     </div>
-    <button class="btn gold" onclick="saveKeys()">Save key</button>
+    <div class="fld">
+      <label class="f" style="display:flex;justify-content:space-between;align-items:baseline">
+        <span data-tip="Powers the earnings call analysis on Valuation. Everything else works without it.">Groq API key</span>
+        <a href="https://console.groq.com/keys" target="_blank" rel="noopener" style="font-family:var(--mono);font-size:9.5px;color:var(--teal-hi);text-decoration:none;letter-spacing:.08em" data-tip="Opens Groq's console in a new tab. Sign in, then Create API Key — free tier, starts with gsk_.">GET KEY →</a>
+      </label>
+      <input type="password" id="k-ai" placeholder="gsk_… — optional, for earnings call analysis">
+    </div>
+    <button class="btn gold" onclick="saveKeys()">Save keys</button>
     <p class="hint">Never leaves this browser. If the Macro app already has a key saved here, it'll show up above automatically — same localStorage, same origin.</p>
+  </div>
+  <div class="sec-t">Model</div>
+  <div class="glass card">
+    <div class="fld">
+      <label class="f" data-tip="Pulled live from GET /openai/v1/models on your key, not hardcoded.">Groq model</label>
+      <select id="m-sel"></select>
+    </div>
+    <button class="btn sm" onclick="loadModels()" data-tip="Re-queries Groq for the current model list.">Refresh live model list</button>
+  </div>
+  <div class="sec-t">Appearance</div>
+  <div class="glass card" style="margin-bottom:14px">
+    <div id="appearance-body"></div>
   </div>
   <div class="sec-t">About</div>
   <div class="glass card" style="margin-bottom:14px">
@@ -501,6 +590,9 @@ const DEFAULT={
   weights:{growth:20,labor:15,inflation:20,rates:15,credit:20,sentiment:10},
   endpoints:{},
   lastSeen:null,
+  theme:{mode:'system',accent:'classic'},
+  lastBackupAt:null,
+  reports:[],              // [{id,type,symbol,name,createdAt,snapshot:{...frozen point-in-time data...}}]
   sectorsFetchedAt:null,
   screener:{rows:[]},
   screenerFetchedAt:null,
@@ -688,6 +780,25 @@ function dividendsPath(symbol){
   const style=resolved&&resolved.includes('stable')?'stable':'legacy';
   return style==='stable'?`/stable/dividends?symbol=${symbol}`:`/api/v3/historical-price-full/stock_dividend/${symbol}`;
 }
+/* Confirmed against FMP's docs: transcripts need a specific year+quarter, not
+   just "latest" — so this is always a two-step fetch: dates list first, then
+   the transcript for whichever entry is most recent. Legacy v3 path is a
+   best-effort guess (not confirmed against docs the way stable was) since
+   FMP's legacy transcript docs weren't available to check directly — if it
+   fails on a legacy-tier account, that's why, and it'll say so rather than
+   fail silently. */
+function transcriptDatesPath(symbol){
+  const resolved=ST.endpoints.funda;
+  const style=resolved&&resolved.includes('stable')?'stable':'legacy';
+  return style==='stable'?`/stable/earning-call-transcript-dates?symbol=${symbol}`:`/api/v3/earning_call_transcript?symbol=${symbol}`;
+}
+function transcriptPath(symbol,year,quarter){
+  const resolved=ST.endpoints.funda;
+  const style=resolved&&resolved.includes('stable')?'stable':'legacy';
+  return style==='stable'
+    ?`/stable/earning-call-transcript?symbol=${symbol}&year=${year}&quarter=${quarter}`
+    :`/api/v3/earning_call_transcript/${symbol}?year=${year}&quarter=${quarter}`;
+}
 
 function fmt$(n){ return n==null||!Number.isFinite(n)?'—':'$'+fmtN(n,2); }
 
@@ -715,7 +826,9 @@ function dl(name,content,type){
 function exportAll(){
   const c=structuredClone(ST); c.keys={fmp:'',ai:''};   // never export secrets
   dl(`iip_${APP_NAME.toLowerCase()}_snapshot_${new Date().toISOString().slice(0,10)}.json`,JSON.stringify({v:APP_VERSION,schema:SCHEMA,data:c},null,2));
+  ST.lastBackupAt=new Date().toISOString(); save();
   toast('Snapshot exported (keys excluded)');
+  const b=document.getElementById('backup-banner'); if(b) b.remove();
 }
 
 function importSnapshot(f){
@@ -937,7 +1050,19 @@ function renderValuation(ticker){
         ${assumptionsRow('a-aaa','AAA bond yield',v.a.aaaYield,0.02,0.08,0.0025,x=>(x*100).toFixed(2)+'%','Feeds the Graham formula\u2019s denominator. Update to the current AAA corporate yield periodically.')}
       </div>
       <p class="hint">Conservative uses 0.5× growth / +2pt discount; optimistic uses 1.35× growth / −1.5pt discount. Blended range = average of all three methods per scenario.</p>
+    </div>
+
+    <div style="display:flex;justify-content:flex-end;margin-top:13px">
+      <button class="btn sm gold" onclick="saveReport('${esc(p.symbol)}')" data-tip="Freezes a point-in-time snapshot of everything above — fair value range, quality/certainty, and the call analysis if run. Viewable in the Reports directory on Home.">Save Report</button>
+    </div>
+
+    <div class="glass card" style="margin-top:13px" id="call-analysis-card">
+      <div class="card-hd"><h3 data-tip="Fetches the most recent earnings call transcript and sends it to Groq for a structured read — guidance, risks, tone, notable quotes. Labeled AI synthesis throughout, same as the macro Cycle Read: never a silent input to anything else in this app.">Earnings Call Analysis</h3>
+        <button class="btn sm gold" id="btn-call-analyze" onclick="analyzeEarningsCall('${esc(p.symbol)}')">Analyze latest call</button>
+      </div>
+      <div id="call-analysis-body"><p class="hint">No call analyzed yet for this ticker.</p></div>
     </div>`;
+  renderCallAnalysis(ticker);
 }
 
 function onValSlider(){
@@ -949,6 +1074,114 @@ function onValSlider(){
     aaaYield:+document.getElementById('a-aaa').value
   };
   save(); renderValuation(ticker);
+}
+
+/* ══════════ AI ANALYST — COMPANY LEVEL ══════════
+   Phase 9. Two-step fetch (dates, then that specific transcript) since FMP
+   has no "latest" shortcut. Truncated before sending to Groq — full
+   transcripts run 30-60k+ characters, well past what's worth spending on a
+   single call. Cached per ticker in ST.companies so revisiting a name
+   doesn't re-spend the Groq call. Labeled as AI synthesis throughout, same
+   as the macro Cycle Read — never presented as if it were the transcript
+   itself. */
+const TRANSCRIPT_CHAR_CAP=18000;
+async function analyzeEarningsCall(symbol){
+  const host=document.getElementById('call-analysis-body');
+  const btn=document.getElementById('btn-call-analyze');
+  if(!ST.keys.fmp){ toast('Add your FMP key in Settings first'); go('set'); return; }
+  if(!ST.keys.ai){ toast('Add your Groq key in Settings first — needed to analyze the call'); go('set'); return; }
+  btn.disabled=true; btn.innerHTML='<span class="spin"></span> finding latest call…';
+  host.innerHTML='<div class="loading" style="text-align:center;padding:30px 0"><span class="spin"></span> pulling transcript…</div>';
+  try{
+    if(!ST.endpoints.funda) await probeEndpoints();
+    if(!ST.endpoints.funda) throw new Error('Fundamentals endpoint unresolved — check Settings.');
+
+    const dates=asArr(await fmp(transcriptDatesPath(symbol)));
+    if(!dates.length) throw new Error(`No earnings call transcripts available for ${symbol} on FMP.`);
+    const sorted=[...dates].sort((a,b)=>{
+      const ay=a.fiscalYear??a.year, by=b.fiscalYear??b.year;
+      return (by-ay)||((b.quarter??0)-(a.quarter??0));
+    });
+    const latest=sorted[0];
+    const year=latest.fiscalYear??latest.year, quarter=latest.quarter;
+    if(year==null||quarter==null) throw new Error('Transcript dates returned but year/quarter fields were unrecognized — FMP may have changed this endpoint\'s shape.');
+
+    btn.innerHTML='<span class="spin"></span> pulling transcript…';
+    const tRows=asArr(await fmp(transcriptPath(symbol,year,quarter)));
+    const t=tRows[0];
+    if(!t||!t.content) throw new Error(`Transcript for ${symbol} Q${quarter} ${year} came back empty.`);
+
+    const truncated=t.content.length>TRANSCRIPT_CHAR_CAP;
+    const text=t.content.slice(0,TRANSCRIPT_CHAR_CAP);
+
+    btn.innerHTML='<span class="spin"></span> analyzing…';
+    const sys=`You analyze earnings call transcripts for an investor. Given a transcript excerpt, respond in this exact structure with no preamble:
+
+**Guidance:** what management said about forward expectations — raised, lowered, maintained, or not addressed.
+**Key risks:** 2-4 risks or concerns raised, by management or in Q&A.
+**Tone:** one line on management's overall tone — confident, defensive, cautious, evasive, etc. — with a brief reason why.
+**Notable quotes:** 1-2 short direct quotes (under 25 words each) that best capture the call's substance.
+**Bottom line:** 2-3 sentences, what a shareholder should take from this call.
+
+Stay factual and attributive ("management said X") rather than offering your own investment opinion. If the excerpt is cut off mid-call, work with what's there rather than noting the cutoff.`;
+    const j=await groq('/chat/completions',{
+      model:ST.model,
+      messages:[{role:'system',content:sys},{role:'user',content:text}],
+      temperature:0.3, max_tokens:900
+    });
+    const analysis=clean(j.choices?.[0]?.message?.content||'');
+    if(!analysis) throw new Error('Groq returned an empty analysis.');
+
+    const co=ST.companies[symbol];
+    if(co){
+      co.callAnalysis={year,quarter,date:t.date||null,analysis,truncated,fetchedAt:new Date().toISOString(),model:ST.model};
+      save();
+    }
+    renderCallAnalysis(symbol);
+  }catch(e){
+    host.innerHTML=`<div class="note warn" style="border-radius:var(--r)">${esc(e.message)}</div>`;
+  }finally{
+    btn.disabled=false; btn.textContent='Analyze latest call';
+  }
+}
+function renderCallAnalysis(symbol){
+  const wrap=document.getElementById('call-analysis-card');
+  const host=document.getElementById('call-analysis-body');
+  if(!wrap||!host) return;
+  const co=ST.companies[symbol];
+  const ca=co&&co.callAnalysis;
+  if(!ca){
+    host.innerHTML='<p class="hint">No call analyzed yet for this ticker.</p>';
+    return;
+  }
+  const body=esc(ca.analysis)
+    .replace(/\*\*(.+?):\*\*/g,'<br><b style="color:var(--gold-hi)">$1:</b>')
+    .replace(/\n/g,'<br>');
+  host.innerHTML=`
+    <div class="asof" style="margin-bottom:8px">Q${ca.quarter} ${ca.year}${ca.date?' · '+esc(ca.date):''} · analyzed ${agoStr(ca.fetchedAt)} · ${esc(ca.model)}</div>
+    ${ca.truncated?'<div class="note warn" style="margin-bottom:10px;border-radius:var(--r-sm)">Transcript exceeded '+TRANSCRIPT_CHAR_CAP.toLocaleString()+' characters — analysis is based on the first portion of the call only, not the full transcript.</div>':''}
+    <div style="font-size:13px;line-height:1.7">${body}</div>`;
+}
+
+function newReportId(){ return 'r'+Date.now().toString(36)+Math.random().toString(36).slice(2,6); }
+function saveReport(symbol){
+  const co=ST.companies[symbol];
+  if(!co){ toast('Nothing loaded to save yet'); return; }
+  let v;
+  try{ v=buildValuation(co,co.assumptions); }catch(e){ toast('Could not build a snapshot: '+e.message); return; }
+  const snapshot={
+    symbol, name:co.profile?.companyName||symbol, price:v.price,
+    range:v.range, mos:v.mos, methods:v.methods, avgPE:v.avgPE,
+    quality:v.quality, certainty:v.certainty,
+    roic:v.roic, intCov:v.intCov, de:v.de, cashConv:v.cashConv,
+    revCV:v.revCV, epsCV:v.epsCV, fcfCV:v.fcfCV,
+    assumptions:v.a,
+    callAnalysis: co.callAnalysis ? {quarter:co.callAnalysis.quarter, year:co.callAnalysis.year, analysis:co.callAnalysis.analysis} : null,
+    dataAsOf: co.fetchedAt
+  };
+  ST.reports.unshift({id:newReportId(),type:'valuation',symbol,name:`${symbol} — ${new Date().toLocaleDateString()}`,createdAt:new Date().toISOString(),snapshot});
+  save();
+  toast(`Report saved — view it on the Home directory.`);
 }
 
 async function lookupCompany(){
@@ -1289,7 +1522,7 @@ function openInValuation(symbol){
 
 const APP_NAME='Research';
 
-function renderAll(){ renderScreener(); renderMonitoring(); renderFoot(); renderFreshness(); }
+function renderAll(){ renderScreener(); renderMonitoring(); renderFoot(); renderFreshness(); checkBackupPrompt(); }
 
 function renderFreshness(){
   const setLight=(dotId,lblId,iso)=>{
@@ -1301,6 +1534,25 @@ function renderFreshness(){
   };
   setLight('d-scr-sync','scr-sync-lbl',ST.screenerFetchedAt);
   setLight('d-mon-sync','mon-sync-lbl',ST.monitoringFetchedAt);
+}
+
+function checkBackupPrompt(){
+  const host=document.getElementById('backup-banner-slot');
+  if(!host) return;
+  const kb=bytes()/1024;
+  const last=ST.lastBackupAt?Date.parse(ST.lastBackupAt):null;
+  const daysSince=last?(Date.now()-last)/864e5:Infinity;
+  if(kb>50 && daysSince>7){
+    host.innerHTML=`<div class="note warn" id="backup-banner" style="border-radius:var(--r);margin-bottom:13px;display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap">
+      <span>${kb.toFixed(0)} KB of data, ${last?'last backed up '+agoStr(ST.lastBackupAt):'never backed up'} — worth exporting a snapshot.</span>
+      <span style="display:flex;gap:8px">
+        <button class="btn sm gold" onclick="exportAll()">Export now</button>
+        <button class="btn sm" onclick="document.getElementById(\'backup-banner\').remove()">Dismiss</button>
+      </span>
+    </div>`;
+  }else{
+    host.innerHTML='';
+  }
 }
 
 function renderFoot(){
@@ -1352,10 +1604,42 @@ function installManifest(){
 
 function saveKeys(){
   ST.keys.fmp=document.getElementById('k-fmp').value.trim();
+  ST.keys.ai=document.getElementById('k-ai').value.trim();
   save();
   dot('d-fmp',ST.keys.fmp?'warn':'');
-  toast('Key saved to this browser only — shared with Macro and Portfolio automatically.');
+  toast('Keys saved to this browser only — shared with Macro and Portfolio automatically.');
+  if(ST.keys.ai) loadModels();
   if(ST.keys.fmp) probeEndpoints();
+}
+
+const clean=t=>String(t||'').replace(/<think>[\s\S]*?<\/think>/gi,'')
+  .replace(/^thinking process:[\s\S]*?(?=\n{2,})/i,'').trim();
+
+async function groq(path,body){
+  if(!ST.keys.ai) throw new Error('No Groq key');
+  const opt={headers:{'Authorization':'Bearer '+ST.keys.ai}};
+  if(body){ opt.method='POST'; opt.headers['Content-Type']='application/json'; opt.body=JSON.stringify(body); }
+  const r=await timeout(fetch('https://api.groq.com/openai/v1'+path,opt),40000,'Groq');
+  const j=await r.json();
+  if(!r.ok) throw new Error(j?.error?.message||('HTTP '+r.status));
+  return j;
+}
+async function loadModels(){
+  if(!ST.keys.ai){ dot('d-ai','err'); return; }
+  try{
+    const j=await groq('/models');
+    const ids=(j.data||[]).map(m=>m.id)
+      .filter(id=>!/whisper|guard|orpheus|tts|prompt-guard/i.test(id)).sort();
+    ST.models=ids;
+    if(!ids.includes(ST.model)) ST.model=ids.find(i=>i.includes('gpt-oss-120b'))||ids[0]||ST.model;
+    save(); dot('d-ai','ok'); renderModels();
+  }catch(e){ dot('d-ai','err'); }
+}
+function renderModels(){
+  const sel=document.getElementById('m-sel'); if(!sel) return;
+  const list=ST.models.length?ST.models:[ST.model];
+  sel.innerHTML=list.map(m=>`<option value="${esc(m)}"${m===ST.model?' selected':''}>${esc(m)}</option>`).join('');
+  sel.onchange=()=>{ ST.model=sel.value; save(); renderModels(); };
 }
 
 function go(v,el){
@@ -1364,11 +1648,55 @@ function go(v,el){
   window.scrollTo({top:0,behavior:'smooth'});
 }
 
+function resolveMode(mode){
+  if(mode==='light'||mode==='dark') return mode;
+  return (window.matchMedia&&window.matchMedia('(prefers-color-scheme: light)').matches)?'light':'dark';
+}
+function applyTheme(){
+  ST.theme=ST.theme||{mode:'system',accent:'classic'};
+  document.documentElement.dataset.mode=resolveMode(ST.theme.mode);
+  document.documentElement.dataset.accent=ST.theme.accent||'classic';
+}
+function setThemeMode(mode){
+  ST.theme=ST.theme||{mode:'system',accent:'classic'};
+  ST.theme.mode=mode;
+  save(); applyTheme(); renderAppearance();
+}
+function setThemeAccent(accent){
+  ST.theme=ST.theme||{mode:'system',accent:'classic'};
+  ST.theme.accent=accent;
+  save(); applyTheme(); renderAppearance();
+}
+function renderAppearance(){
+  const host=document.getElementById('appearance-body');
+  if(!host) return;
+  const t=ST.theme||{mode:'system',accent:'classic'};
+  const modes=[['system','Follow system'],['light','Light'],['dark','Dark']];
+  const accents=['classic','emerald','rose','amber'];
+  host.innerHTML=`
+    <div class="appear-row">${modes.map(([m,l])=>
+      `<button class="mode-btn ${t.mode===m?'on':''}" onclick="setThemeMode('${m}')">${esc(l)}</button>`).join('')}</div>
+    <div class="swatch-row">${accents.map(a=>
+      `<div class="swatch ${t.accent===a?'on':''}" data-a="${a}" onclick="setThemeAccent('${a}')" data-tip="${esc(a[0].toUpperCase()+a.slice(1))}"></div>`).join('')}</div>
+    <p class="hint" style="margin-top:12px">Applies everywhere — same preference shared across Macro, Research, and Portfolio.</p>`;
+}
+function initThemeWatcher(){
+  if(window.matchMedia){
+    window.matchMedia('(prefers-color-scheme: light)').addEventListener('change',()=>{
+      if((ST.theme&&ST.theme.mode)==='system') applyTheme();
+    });
+  }
+}
+
 function boot(){
   load();
+  applyTheme(); initThemeWatcher(); renderAppearance();
   document.getElementById('k-fmp').value=ST.keys.fmp||'';
+  document.getElementById('k-ai').value=ST.keys.ai||'';
   dot('d-fmp',ST.keys.fmp?(Object.values(ST.endpoints).some(Boolean)?'ok':'warn'):'');
+  dot('d-ai',ST.keys.ai?'warn':'');
   renderAll();
+  if(ST.keys.ai&&!ST.models.length) loadModels(); else renderModels();
 
   // Cross-app deep link from Portfolio: iip-research.html?ticker=AAPL
   const urlTicker=new URLSearchParams(location.search).get('ticker');
