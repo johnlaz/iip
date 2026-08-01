@@ -556,6 +556,9 @@ html[data-mode="light"][data-accent="amber"]{
 </footer>
 </div>
 <div class="toast glass" id="toast"></div>
+<div class="modal-ov" id="modal-ov" onclick="if(event.target===this)closeDetail()">
+  <div class="modal-box glass" id="modal-box" role="dialog" aria-modal="true"></div>
+</div>
 <script>
 "use strict";
 const APP_VERSION='1.3.0', SCHEMA='iip_v1';
@@ -1055,6 +1058,13 @@ function renderValuation(ticker){
       <p class="hint">Conservative uses 0.5× growth / +2pt discount; optimistic uses 1.35× growth / −1.5pt discount. Blended range = average of all three methods per scenario.</p>
     </div>
 
+    <div class="glass card" style="margin-top:13px">
+      <div class="card-hd"><h3 data-tip="Standard moving-average, RSI and 52-week-range arithmetic on daily price history — the same hist endpoint already backing Sector and VIX charts in Macro, not a new data source.">Price &amp; Technicals</h3>
+        <button class="btn sm gold" onclick="openPriceChart('${esc(p.symbol)}')">View Chart</button>
+      </div>
+      <div id="tech-body"><p class="hint">Loading…</p></div>
+    </div>
+
     <div style="display:flex;justify-content:flex-end;margin-top:13px">
       <button class="btn sm gold" onclick="saveReport('${esc(p.symbol)}')" data-tip="Freezes a point-in-time snapshot of everything above — fair value range, quality/certainty, and the call analysis if run. Viewable in the Reports directory on Home.">Save Report</button>
     </div>
@@ -1066,6 +1076,7 @@ function renderValuation(ticker){
       <div id="call-analysis-body"><p class="hint">No call analyzed yet for this ticker.</p></div>
     </div>`;
   renderCallAnalysis(ticker);
+  renderTechnicals(ticker);
 }
 
 function onValSlider(){
@@ -1229,20 +1240,223 @@ async function fetchCompany(ticker){
       return {rows:[],err:e.message};
     }
   }
-  const [profileR,income,balance,cashflow,ratios,keymetrics]=await Promise.all([
+  // Price history — same hist endpoint that already backs Sector/VIX charts
+  // in Macro, not a new data source. Failure here doesn't block the lookup:
+  // DCF/Graham/multiples don't need it, only the chart and technical signals do.
+  async function pullPrice(){
+    try{
+      if(!ST.endpoints.hist) await probeEndpoints();
+      if(!ST.endpoints.hist) return {rows:[],err:'Historical price endpoint unresolved.'};
+      const rows=asArr(await fmp(epPath('hist',ticker)));
+      const sorted=sortNewestFirst(rows.map(r=>({d:r.date,v:+r.close})).filter(r=>Number.isFinite(r.v)));
+      return {rows:sorted,err:sorted.length?null:'No usable price history returned.'};
+    }catch(e){ return {rows:[],err:e.message}; }
+  }
+  const [profileR,income,balance,cashflow,ratios,keymetrics,priceR]=await Promise.all([
     fmp(fundaPath('profile',ticker)).then(d=>({rows:asArr(d),err:null})).catch(e=>({rows:[],err:e.message})),
-    pull('income'), pull('balance'), pull('cashflow'), pull('ratios'), pull('keymetrics')
+    pull('income'), pull('balance'), pull('cashflow'), pull('ratios'), pull('keymetrics'), pullPrice()
   ]);
   const p=profileR.rows[0]||null;
   if(!p && !income.rows.length) throw new Error(`No fundamentals returned for ${ticker} — check the symbol, or your FMP plan may not cover this endpoint (${income.err||profileR.err||'unknown error'}).`);
   const errors={};
-  [['profile',profileR],['income',income],['balance',balance],['cashflow',cashflow],['ratios',ratios],['keymetrics',keymetrics]]
+  [['profile',profileR],['income',income],['balance',balance],['cashflow',cashflow],['ratios',ratios],['keymetrics',keymetrics],['priceHistory',priceR]]
     .forEach(([k,r])=>{ if(r.err&&!r.rows.length) errors[k]=r.err; });
   return {
     profile:p, income:income.rows, balance:balance.rows, cashflow:cashflow.rows,
-    ratios:ratios.rows, keymetrics:keymetrics.rows, errors,
+    ratios:ratios.rows, keymetrics:keymetrics.rows, priceHistory:priceR.rows, errors,
     fetchedAt:new Date().toISOString()
   };
+}
+
+/* ══════════ CHART ENGINE ══════════
+   Ported verbatim from Macro (Sectors/Indicators detail views) — same
+   lookahead-safe range anchoring, same rendering. Daily price data only
+   here, so freq is always 'D'. */
+function rollingAvg(ascVals,n){
+  const out=[];
+  for(let i=0;i<ascVals.length;i++){
+    if(i<n-1){ out.push(NaN); continue; }
+    let s=0; for(let k=i-n+1;k<=i;k++) s+=ascVals[k];
+    out.push(s/n);
+  }
+  return out;
+}
+const MA_COLORS=['var(--gold)','var(--teal)'];
+const RANGE_OPTS={D:[['1M',30],['3M',90],['6M',182],['1Y',365],['3Y',1095],['5Y',1825],['ALL',null]]};
+function defaultRangeDays(){ return 365; }
+function lineChart(rows,opts){
+  opts=opts||{};
+  const w=opts.w||680, h=opts.h||210, pad={l:4,r:4,t:10,b:22};
+  if(!rows||rows.length<3) return {svg:'<div class="empty" style="padding:24px"><p>Not enough history to chart yet.</p></div>',legend:''};
+  const ascFull=[...rows].reverse();
+  const valsFull=ascFull.map(r=>r.v);
+  const freq=opts.freq||'D';
+  const maWins=(opts.maApplicable===false)?[]:(MA_BY_FREQ[freq]||[]).filter(n=>valsFull.length>=n*1.3);
+  const masFull=maWins.map((n,i)=>({n,color:MA_COLORS[i%2],vals:rollingAvg(valsFull,n)}));
+  let start=0;
+  if(opts.rangeDays && ascFull.length){
+    const latestTs=Date.parse(ascFull[ascFull.length-1].d);
+    const cutoff=latestTs-opts.rangeDays*864e5;
+    const idx=ascFull.findIndex(r=>Date.parse(r.d)>=cutoff);
+    start=idx>=0?idx:0;
+  }
+  const asc=ascFull.slice(start);
+  const vals=valsFull.slice(start);
+  const mas=masFull.map(m=>({n:m.n,color:m.color,vals:m.vals.slice(start)}));
+  if(asc.length<2) return {svg:'<div class="empty" style="padding:24px"><p>Not enough history in this range — try a wider one.</p></div>',legend:''};
+  const all=vals.concat(...mas.map(m=>m.vals.filter(Number.isFinite)));
+  const mn=Math.min(...all), mx=Math.max(...all), rg=(mx-mn)||1;
+  const x=i=>pad.l+(i/(vals.length-1))*(w-pad.l-pad.r);
+  const y=v=>pad.t+(1-(v-mn)/rg)*(h-pad.t-pad.b);
+  const pts=vals.map((v,i)=>`${x(i).toFixed(1)},${y(v).toFixed(1)}`).join(' ');
+  const areaId='ag'+Math.random().toString(36).slice(2,8);
+  const maPolys=mas.map(m=>{
+    const p=m.vals.map((v,i)=>Number.isFinite(v)?`${x(i).toFixed(1)},${y(v).toFixed(1)}`:null).filter(Boolean).join(' ');
+    return `<polyline points="${p}" fill="none" stroke="${m.color}" stroke-width="1.3" stroke-dasharray="4 3" opacity=".9" vector-effect="non-scaling-stroke"/>`;
+  }).join('');
+  const rising=vals[vals.length-1]>=vals[0];
+  const lineCol=rising?'var(--pos)':'var(--neg)';
+  const gridY=[0,.25,.5,.75,1].map(f=>`<line x1="${pad.l}" x2="${w-pad.r}" y1="${(pad.t+f*(h-pad.t-pad.b)).toFixed(1)}" y2="${(pad.t+f*(h-pad.t-pad.b)).toFixed(1)}" stroke="rgba(120,160,220,.08)" stroke-width="1"/>`).join('');
+  const svg=`<svg viewBox="0 0 ${w} ${h}" width="100%" height="${h}" preserveAspectRatio="none" role="img" aria-label="Price chart">
+    <defs><linearGradient id="${areaId}" x1="0" y1="0" x2="0" y2="1">
+      <stop offset="0%" stop-color="${lineCol}" stop-opacity=".22"/><stop offset="100%" stop-color="${lineCol}" stop-opacity="0"/>
+    </linearGradient></defs>
+    ${gridY}
+    <polygon points="${pts} ${x(vals.length-1).toFixed(1)},${(h-pad.b).toFixed(1)} ${x(0).toFixed(1)},${(h-pad.b).toFixed(1)}" fill="url(#${areaId})"/>
+    <polyline points="${pts}" fill="none" stroke="${lineCol}" stroke-width="1.7" vector-effect="non-scaling-stroke"/>
+    ${maPolys}
+    <text x="${pad.l}" y="${h-6}" font-family="JetBrains Mono" font-size="9" fill="var(--ink-faint)">${esc(asc[0].d)}</text>
+    <text x="${w-pad.r}" y="${h-6}" font-family="JetBrains Mono" font-size="9" fill="var(--ink-faint)" text-anchor="end">${esc(asc[asc.length-1].d)}</text>
+  </svg>`;
+  const legend=`<i><em style="background:${lineCol}"></em>price</i>`+mas.map(m=>`<i><em style="background:${m.color};height:0;border-top:2px dashed ${m.color}"></em>${m.n}D MA</i>`).join('')
+    +`<i style="margin-left:auto">range ${fmtN(mn,2)}–${fmtN(mx,2)} · ${asc.length} pts shown</i>`;
+  return {svg,legend};
+}
+
+let MODAL_CTX=null;
+function rangeButtons(){
+  return `<div style="display:flex;gap:6px;flex-wrap:wrap;margin:15px 0 3px">${RANGE_OPTS.D.map(([k,d])=>
+    `<button class="btn sm range-btn" data-days="${d}" onclick="setRange(${d})">${k}</button>`
+  ).join('')}</div>`;
+}
+async function openPriceChart(symbol){
+  MODAL_CTX={id:symbol,days:defaultRangeDays()};
+  const box=document.getElementById('modal-box');
+  box.innerHTML=`<div class="modal-hd"><div><h2>${esc(symbol)} <span style="color:var(--ink-low);font-family:var(--body);font-size:15px;font-style:normal">Price</span></h2><p>Daily close with 50 and 200-day moving averages.</p></div><button class="modal-x" onclick="closeDetail()">✕</button></div>
+    <div class="loading" style="text-align:center;padding:30px 0"><span class="spin"></span> pulling price history…</div>`;
+  document.getElementById('modal-ov').classList.add('on');
+  const co=ST.companies[symbol];
+  let hist=co&&co.priceHistory;
+  if(!hist||!hist.length){
+    try{
+      if(!ST.endpoints.hist) await probeEndpoints();
+      if(!ST.endpoints.hist) throw new Error('Historical price endpoint unresolved — check Settings.');
+      const rows=asArr(await fmp(epPath('hist',symbol)));
+      hist=sortNewestFirst(rows.map(r=>({d:r.date,v:+r.close})).filter(r=>Number.isFinite(r.v)));
+      if(co){ co.priceHistory=hist; save(); }
+    }catch(e){
+      if(!MODAL_CTX||MODAL_CTX.id!==symbol) return;
+      box.innerHTML=`<div class="modal-hd"><div><h2>${esc(symbol)}</h2></div><button class="modal-x" onclick="closeDetail()">✕</button></div><div class="note warn" style="border-radius:var(--r)">${esc(e.message)}</div>`;
+      return;
+    }
+  }
+  if(!MODAL_CTX||MODAL_CTX.id!==symbol) return;
+  if(!hist.length){
+    box.innerHTML=`<div class="modal-hd"><div><h2>${esc(symbol)}</h2></div><button class="modal-x" onclick="closeDetail()">✕</button></div><div class="empty" style="padding:30px"><b>No price history</b><p>FMP returned nothing usable for this symbol.</p></div>`;
+    return;
+  }
+  box.innerHTML=`<div class="modal-hd"><div><h2>${esc(symbol)} <span style="color:var(--ink-low);font-family:var(--body);font-size:15px;font-style:normal">Price</span></h2><p>Daily close with 50 and 200-day moving averages.</p></div><button class="modal-x" onclick="closeDetail()">✕</button></div>
+    ${rangeButtons()}
+    <div class="chart-wrap" id="chart-wrap"></div>
+    <div class="chart-legend" id="chart-legend"></div>
+    <div class="asof" style="margin-top:14px">${hist.length} sessions cached · as of ${esc(hist[0].d)} · FMP</div>`;
+  renderModalChart();
+}
+function renderModalChart(){
+  if(!MODAL_CTX) return;
+  const co=ST.companies[MODAL_CTX.id];
+  const rows=co&&co.priceHistory;
+  const ch=(rows&&rows.length)?lineChart(rows,{freq:'D',rangeDays:MODAL_CTX.days}):{svg:'<div class="empty" style="padding:24px"><p>No data.</p></div>',legend:''};
+  const cw=document.getElementById('chart-wrap'), cl=document.getElementById('chart-legend');
+  if(cw) cw.innerHTML=ch.svg;
+  if(cl) cl.innerHTML=ch.legend;
+  document.querySelectorAll('.range-btn').forEach(b=>b.classList.toggle('on',b.dataset.days===String(MODAL_CTX.days)));
+}
+function setRange(days){ if(!MODAL_CTX) return; MODAL_CTX.days=days; renderModalChart(); }
+function closeDetail(){ document.getElementById('modal-ov').classList.remove('on'); MODAL_CTX=null; }
+
+/* ══════════ TECHNICAL SIGNALS ══════════
+   Standard arithmetic on price history — moving-average cross, RSI-14,
+   52-week range position. Deliberately NOT chart-pattern recognition
+   (head-and-shoulders, triangles, etc.) — that's a research problem, not
+   something a heuristic does honestly, and it's not built here. */
+function computeTechnicals(priceRows){
+  if(!priceRows||priceRows.length<20) return null;
+  const asc=[...priceRows].reverse();
+  const closes=asc.map(r=>r.v);
+  const n=closes.length;
+  function sma(endIdx,win){
+    if(endIdx<win-1) return null;
+    let s=0; for(let i=endIdx-win+1;i<=endIdx;i++) s+=closes[i];
+    return s/win;
+  }
+  const lastIdx=n-1;
+  const ma50=sma(lastIdx,50), ma200=sma(lastIdx,200);
+  const priorIdx=Math.max(0,lastIdx-5);
+  const ma50Prior=sma(priorIdx,50), ma200Prior=sma(priorIdx,200);
+  let cross=null;
+  if(ma50!=null&&ma200!=null&&ma50Prior!=null&&ma200Prior!=null){
+    const nowAbove=ma50>ma200, wasAbove=ma50Prior>ma200Prior;
+    cross = nowAbove&&!wasAbove ? 'golden' : (!nowAbove&&wasAbove ? 'death' : (nowAbove?'above':'below'));
+  }
+  function rsi(period){
+    if(n<period+1) return null;
+    let gains=0,losses=0;
+    for(let i=n-period;i<n;i++){ const chg=closes[i]-closes[i-1]; if(chg>0) gains+=chg; else losses-=chg; }
+    const avgGain=gains/period, avgLoss=losses/period;
+    if(avgLoss===0) return 100;
+    return 100-(100/(1+(avgGain/avgLoss)));
+  }
+  const rsi14=rsi(14);
+  const win=Math.min(n,252);
+  const last252=closes.slice(-win);
+  const hi52=Math.max(...last252), lo52=Math.min(...last252);
+  const cur=closes[lastIdx];
+  const pctFromHigh=hi52?((cur-hi52)/hi52)*100:null;
+  const pctFromLow=lo52?((cur-lo52)/lo52)*100:null;
+  const rangePos=(hi52>lo52)?((cur-lo52)/(hi52-lo52))*100:null;
+  return {ma50,ma200,cross,rsi14,hi52,lo52,cur,pctFromHigh,pctFromLow,rangePos};
+}
+function renderTechnicals(symbol){
+  const host=document.getElementById('tech-body');
+  if(!host) return;
+  const co=ST.companies[symbol];
+  const t=co&&co.priceHistory&&co.priceHistory.length?computeTechnicals(co.priceHistory):null;
+  if(!t){
+    host.innerHTML='<p class="hint">Not enough price history to compute signals.</p>';
+    return;
+  }
+  const crossLbl={golden:'Golden Cross',death:'Death Cross',above:'Above 200D',below:'Below 200D'};
+  const crossCls={golden:'pos',death:'neg',above:'pos',below:'neg'};
+  const rsiCls=t.rsi14==null?'flat':t.rsi14>=70?'neg':t.rsi14<=30?'pos':'flat';
+  const rsiLbl=t.rsi14==null?'—':t.rsi14>=70?'Overbought':t.rsi14<=30?'Oversold':'Neutral';
+  host.innerHTML=`<div class="grid g3">
+      <div class="stat-cell" data-tip="50-day MA vs 200-day MA. A cross is flagged only if it happened within the last ~5 trading days — otherwise it's just labeled by current position.">
+        <i>Trend</i><b class="num ${t.cross?crossCls[t.cross]:''}">${t.cross?crossLbl[t.cross]:'—'}</b>
+      </div>
+      <div class="stat-cell" data-tip="14-day RSI. Over 70 is conventionally read as overbought, under 30 as oversold — a momentum read, not a buy/sell signal.">
+        <i>RSI (14D)</i><b class="num ${rsiCls}">${t.rsi14==null?'—':t.rsi14.toFixed(0)}</b><span style="color:var(--ink-low);font-size:10.5px;display:block">${rsiLbl}</span>
+      </div>
+      <div class="stat-cell" data-tip="Distance from the 52-week high and low.">
+        <i>52W range</i><b class="num">${t.pctFromHigh==null?'—':t.pctFromHigh.toFixed(1)+'% from high'}</b>
+      </div>
+    </div>
+    <div class="track" style="height:22px;margin-top:12px">
+      ${t.rangePos!=null?`<span class="tick" style="left:${t.rangePos}%"></span>`:''}
+    </div>
+    <div style="display:flex;justify-content:space-between;font-family:var(--mono);font-size:10px;color:var(--ink-faint);margin-top:4px">
+      <span>52W low ${fmtN(t.lo52,2)}</span><span>52W high ${fmtN(t.hi52,2)}</span>
+    </div>`;
 }
 
 /* ── shared math helpers ── */
