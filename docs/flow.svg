@@ -1,0 +1,46 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 460" role="img" aria-label="How IIP works: your FMP and Groq keys feed three apps — Macro, Research and Portfolio — which all read and write one shared localStorage dataset in your browser.">
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#0b1220"/><stop offset="1" stop-color="#172036"/></linearGradient>
+    <linearGradient id="ac" x1="0" y1="0" x2="1" y2="1"><stop offset="0" stop-color="#38bdf8"/><stop offset="1" stop-color="#818cf8"/></linearGradient>
+    <marker id="ar" viewBox="0 0 10 10" refX="8" refY="5" markerWidth="7" markerHeight="7" orient="auto-start-reverse"><path d="M0 0L10 5L0 10z" fill="#7dd3fc"/></marker>
+  </defs>
+  <style>
+    .t{font-family:'Space Grotesk','Segoe UI',Helvetica,Arial,sans-serif;font-weight:700;fill:#e8eef8}
+    .m{font-family:ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;fill:#9fb0c9}
+    .box{fill:#1e293b;fill-opacity:.7;stroke:#38bdf8;stroke-opacity:.35;stroke-width:1.5}
+  </style>
+  <rect width="1200" height="460" rx="22" fill="url(#bg)"/>
+  <text x="40" y="54" class="m" font-size="14" letter-spacing="3">HOW IT WORKS</text>
+
+  <!-- keys -->
+  <rect class="box" x="40" y="110" width="230" height="86" rx="14"/>
+  <text x="62" y="146" class="t" font-size="20">FMP key</text><text x="62" y="172" class="m" font-size="13">market + fundamentals data</text>
+  <rect class="box" x="40" y="236" width="230" height="86" rx="14"/>
+  <text x="62" y="272" class="t" font-size="20">Groq key (optional)</text><text x="62" y="298" class="m" font-size="13">AI briefings + call analysis</text>
+
+  <!-- apps -->
+  <rect class="box" x="400" y="76" width="250" height="84" rx="14"/>
+  <text x="424" y="112" class="t" font-size="22">Macro</text><text x="424" y="138" class="m" font-size="13">regime · sectors · backtest</text>
+  <rect class="box" x="400" y="188" width="250" height="84" rx="14"/>
+  <text x="424" y="224" class="t" font-size="22">Research</text><text x="424" y="250" class="m" font-size="13">valuation · screener · calls</text>
+  <rect class="box" x="400" y="300" width="250" height="84" rx="14"/>
+  <text x="424" y="336" class="t" font-size="22">Portfolio</text><text x="424" y="362" class="m" font-size="13">holdings · drift · journal</text>
+
+  <!-- shared store -->
+  <rect x="800" y="120" width="360" height="220" rx="18" fill="#1e293b" fill-opacity=".8" stroke="url(#ac)" stroke-width="2.5"/>
+  <text x="980" y="176" text-anchor="middle" class="t" font-size="24">One shared dataset</text>
+  <text x="980" y="206" text-anchor="middle" class="m" font-size="14">localStorage · key "iip_v1"</text>
+  <text x="980" y="250" text-anchor="middle" class="m" font-size="13">keys · model · series · valuations</text>
+  <text x="980" y="272" text-anchor="middle" class="m" font-size="13">holdings · reports · theme</text>
+  <text x="980" y="314" text-anchor="middle" class="m" font-size="12" fill="#7dd3fc">stays in your browser — no backend</text>
+
+  <!-- arrows -->
+  <g stroke="#7dd3fc" stroke-width="2" fill="none" marker-end="url(#ar)">
+    <path d="M270 153 C 330 153, 340 118, 396 118"/><path d="M270 153 C 330 153, 340 230, 396 230"/><path d="M270 153 C 320 153, 330 342, 396 342" stroke-opacity=".55"/>
+    <path d="M270 279 C 330 279, 340 142, 396 142" stroke-opacity=".55"/><path d="M270 279 C 330 279, 340 252, 396 252"/><path d="M270 279 C 330 279, 340 360, 396 360"/>
+  </g>
+  <g stroke="#7dd3fc" stroke-width="2" fill="none" marker-start="url(#ar)" marker-end="url(#ar)">
+    <path d="M654 118 C 730 118, 740 190, 796 190"/><path d="M654 230 L 796 230"/><path d="M654 342 C 730 342, 740 270, 796 270"/>
+  </g>
+  <text x="40" y="420" class="m" font-size="13">Set a key in any app and it is live in all of them. Research's margin of safety shows up in Portfolio with no extra lookup.</text>
+</svg>
