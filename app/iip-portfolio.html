@@ -173,7 +173,7 @@ tbody tr:hover{background:rgba(129,140,248,.045)}
 
 /* ── forms ── */
 label.f{display:block;font-family:var(--mono);font-size:9.5px;letter-spacing:.13em;text-transform:uppercase;color:var(--ink-low);margin-bottom:6px}
-input[type=text],input[type=password],textarea,select{
+input[type=text],input[type=password],input[type=number],textarea,select{
   width:100%;padding:10px 12px;font-family:var(--mono);font-size:12.5px;
   background:rgba(6,13,26,.72);border:1px solid var(--edge);border-radius:var(--r-sm);color:var(--ink)
 }
@@ -554,7 +554,7 @@ html[data-mode="light"][data-accent="amber"]{
 <div class="toast glass" id="toast" role="status" aria-live="polite"></div>
 <script>
 "use strict";
-const APP_VERSION='2.3.0', BUILD_DATE='2026-10-07', SCHEMA='iip_v1';
+const APP_VERSION='2.3.1', BUILD_DATE='2026-10-07', SCHEMA='iip_v1';
 
 
 /* staleness tolerance in days, by frequency */
@@ -1124,7 +1124,7 @@ function renderPortfolio(){
       <tr class="clk" tabindex="0" role="button" aria-label="Open ${esc(h.symbol)} in Valuation" onclick="openInResearch('${esc(h.symbol)}')" onkeydown="if(event.key==='Enter'){openInResearch('${esc(h.symbol)}')}">
         <td>${h.flag?`<span class="badge ${flagCls[h.flag]}">${flagLbl[h.flag]}</span>`:'—'}</td>
         <td><span class="tk">${esc(h.symbol)}</span>${h.name?` <span style="color:var(--ink-low);font-size:11.5px">${esc(h.name)}</span>`:''}
-          <button class="btn sm" style="padding:2px 8px;font-size:10px;margin-left:6px" onclick="event.stopPropagation();removeHolding('${h.id}')" data-tip="Remove this holding" aria-label="Close">✕</button></td>
+          <button class="btn sm" style="padding:2px 8px;font-size:10px;margin-left:6px" onclick="event.stopPropagation();removeHolding('${h.id}')" data-tip="Remove this holding" aria-label="Remove">✕</button></td>
         <td class="num">${fmtN(h.shares,2)}</td>
         <td class="num">${h.price==null?'—':fmt$(h.price)}</td>
         <td class="num">${h.mv==null?'—':fmtN(h.mv)}</td>

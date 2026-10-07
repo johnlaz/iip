@@ -609,7 +609,7 @@ html[data-mode="light"][data-accent="amber"]{
 <script>
 "use strict";
 const SCHEMA='iip_v1';
-const APP_VERSION='2.3.0', BUILD_DATE='2026-10-07';
+const APP_VERSION='2.3.1', BUILD_DATE='2026-10-07';
 const esc=s=>String(s??'').replace(/[&<>"]/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;'}[c]));
 function timeout(p,ms,lbl){ return Promise.race([p,new Promise((_,r)=>setTimeout(()=>r(new Error((lbl||'request')+' timed out')),ms))]); }
 const clean=t=>String(t||'').replace(/<think>[\s\S]*?<\/think>/gi,'')

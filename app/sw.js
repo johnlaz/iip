@@ -4,7 +4,7 @@
    pages) on every deploy that changes a shell file.
    API responses (FMP, Groq) are NEVER cached: a stale reading that looks live is worse
    than no reading at all. */
-const VERSION = '2.3.0';
+const VERSION = '2.3.1';
 const CACHE = 'iip-shell-v' + VERSION;
 const FONTS = 'iip-fonts';
 const SHELL = [

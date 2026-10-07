@@ -567,7 +567,7 @@ html[data-mode="light"][data-accent="amber"]{
 </div>
 <script>
 "use strict";
-const APP_VERSION='2.3.0', BUILD_DATE='2026-10-07', SCHEMA='iip_v1';
+const APP_VERSION='2.3.1', BUILD_DATE='2026-10-07', SCHEMA='iip_v1';
 
 /* staleness tolerance in days, by frequency */
 
@@ -1692,7 +1692,7 @@ function renderMonitoring(){
   if(chipHost){
     chipHost.innerHTML = ST.watchlist.length ? ST.watchlist.map(s=>
       `<span class="tag" style="font-family:var(--mono);font-size:10.5px;border:1px solid var(--edge);padding:4px 9px;border-radius:999px;color:var(--ink-mid);display:inline-flex;align-items:center;gap:6px;margin:0 6px 6px 0">
-        ${esc(s)}<button onclick="removeWatch('${esc(s)}')" style="background:none;border:0;color:var(--ink-faint);cursor:pointer;font-size:11px;padding:0" data-tip="Remove from watchlist" aria-label="Close">✕</button>
+        ${esc(s)}<button onclick="removeWatch('${esc(s)}')" style="background:none;border:0;color:var(--ink-faint);cursor:pointer;font-size:11px;padding:0" data-tip="Remove from watchlist" aria-label="Remove">✕</button>
       </span>`).join('') : '<p class="hint">Nothing on the watchlist yet — holdings from Portfolio are monitored automatically either way.</p>';
   }
 
