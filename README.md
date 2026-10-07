@@ -5,7 +5,7 @@
 **Macro regime. Company valuation. Portfolio tracking.**
 **One shared dataset. Zero backend. Installs like a native app.**
 
-*A LAZLAB Creations product — Platform 01 · v2.3.0*
+*A LAZLAB Creations product — Platform 01 · v2.3.1*
 
 </div>
 
@@ -57,6 +57,7 @@ Live status for all three apps, type-ahead search across the whole platform, a p
 /app/sw.js             app-shell service worker
 /app/icon-192.png      icons (192 + 512, maskable-safe)
 /app/icon-512.png
+/app/shot-*.png        install-prompt screenshots (sample data)
 ```
 
 Everything under `/app/` must stay in one folder: same origin and path is how the apps share data.
@@ -93,6 +94,11 @@ Static files on GitHub Pages — no build step.
 Moving from a pre-2.3 install: remove the old app and reinstall from `/app/`. Your data is kept (it lives in the origin's `localStorage`, not in the install).
 
 ## Changelog
+
+**2.3.1 — 2026-10-07**
+- Install-prompt screenshots added to the manifest (three, with sample data — not real holdings or market readings).
+- Portfolio number inputs (shares, cost, target) now styled like every other field.
+- Remove buttons labelled "Remove" instead of "Close" for screen readers.
 
 **2.3.0 — 2026-10-07**
 - Restructured into landing (root) + app (`/app/`); installs must be redone.
